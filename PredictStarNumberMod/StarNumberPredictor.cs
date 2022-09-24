@@ -10,7 +10,10 @@ namespace PredictStarNumberMod
 {
     internal static class StarNumberPredictor
     {
-        public static async Task<string> PredictStarNumber(string hash, string mapType)
+        internal static string hash;
+        internal static string mapType;
+        
+        public static async Task<string> PredictStarNumber()
         {
             string endpoint = $"https://predictstarnumber.herokuapp.com/api2/hash/{hash}";
 

@@ -80,6 +80,11 @@
       <Private>False</Private>
       <SpecificVersion>False</SpecificVersion>
     </Reference>
+    <Reference Include="SongCore">
+      <HintPath>$(BeatSaberDir)\Plugins\SongCore.dll</HintPath>
+      <Private>False</Private>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Net.Http">
@@ -147,8 +152,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HashGetter.cs" />
     <Compile Include="Installers\MenuInstaller.cs" />
     <Compile Include="Patches\StarNumberInfoAdder.cs" />
+    <Compile Include="Patches\StarNumberInfoAdder2.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Configuration\PluginConfig.cs" />
     <Compile Include="SettingViewController.cs" />
