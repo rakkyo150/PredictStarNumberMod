@@ -8,13 +8,16 @@ using UnityEngine;
 using IPA.Utilities;
 using System.Reflection;
 using TMPro;
+using Newtonsoft.Json;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 /// <summary>
 /// See https://github.com/pardeike/Harmony/wiki for a full reference on Harmony.
 /// </summary>
 namespace PredictStarNumberMod.Patches
 {
-    public class StarNumberInfoAdder
+    public class StarNumberSetter
     {
         /// <summary>
         /// This code is run after the original code in MethodToPatch is run.
@@ -41,12 +44,28 @@ namespace PredictStarNumberMod.Patches
             // 非同期で書き換えをする必要がある
             async void wrapper(TextMeshProUGUI[] fields)
             {
-                string predictedStarNumber= await StarNumberPredictor.PredictStarNumber();
+                string predictedStarNumber= await PredictStarNumber(MapDataDeliverer.Instance);
                 string showedStarNumber= $"({predictedStarNumber})";
                 fields[1].text = showedStarNumber;
             }    
 
             wrapper(___fields);
+
+            
+            async Task<string> PredictStarNumber(MapDataDeliverer mapDataDeliverer)
+            {
+                string endpoint = $"https://predictstarnumber.herokuapp.com/api2/hash/{mapDataDeliverer.Hash}";
+
+                HttpClient client = new HttpClient();
+                var response = await client.GetAsync(endpoint);
+                string jsonString = await response.Content.ReadAsStringAsync();
+
+                dynamic jsonDynamic = JsonConvert.DeserializeObject<dynamic>(jsonString);
+
+                string rank = JsonConvert.SerializeObject(jsonDynamic[mapDataDeliverer.MapType]);
+
+                return rank;
+            }
         }
     }
 }

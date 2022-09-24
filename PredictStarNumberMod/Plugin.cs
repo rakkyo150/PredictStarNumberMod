@@ -27,7 +27,6 @@ namespace PredictStarNumberMod
 
         internal static Plugin Instance { get; private set; }
         internal static IPALogger Log { get; private set; }
-        internal static PredictStarNumberModController PluginController { get { return PredictStarNumberModController.Instance; } }
 
         [Init]
         /// <summary>
@@ -62,7 +61,6 @@ namespace PredictStarNumberMod
         [OnEnable]
         public void OnEnable()
         {
-            new GameObject("PredictStarNumberModController").AddComponent<PredictStarNumberModController>();
             ApplyHarmonyPatches();
         }
 
@@ -74,8 +72,6 @@ namespace PredictStarNumberMod
         [OnDisable]
         public void OnDisable()
         {
-            if (PluginController != null)
-                GameObject.Destroy(PluginController);
             RemoveHarmonyPatches();
         }
 
@@ -109,7 +105,7 @@ namespace PredictStarNumberMod
                 if (type != null)
                 {
                     var original = AccessTools.Method(type, "Postfix");
-                    var postfix = new HarmonyMethod(AccessTools.Method(typeof(StarNumberInfoAdder), "Postfix"));
+                    var postfix = new HarmonyMethod(AccessTools.Method(typeof(StarNumberSetter), "Postfix"));
                     harmony.Patch(original, null, postfix, null);
                 }
                 Plugin.Log?.Debug("Applying Harmony patches.");

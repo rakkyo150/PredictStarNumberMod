@@ -26,7 +26,7 @@ namespace PredictStarNumberMod
                 if (PluginConfig.Instance.Enable == value) return;
                 PluginConfig.Instance.Enable = value;
                 Plugin.Log.Info("Enable");
-                // NotifyPropertyChanged();
+                NotifyPropertyChanged();
             }
         }
 
@@ -40,12 +40,10 @@ namespace PredictStarNumberMod
             BSMLSettings.instance.AddSettingsMenu("PredictStarNumberMod", ResourceName, this);
         }
 
-        /*
         [UIAction("#post-parse")]
         internal void PostParse()
         {
             // Code to run after BSML finishes
         }
-        */
     }
 }

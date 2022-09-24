@@ -152,15 +152,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="HashGetter.cs" />
+    <Compile Include="MapDataDeliverer.cs" />
     <Compile Include="Installers\MenuInstaller.cs" />
-    <Compile Include="Patches\StarNumberInfoAdder.cs" />
-    <Compile Include="Patches\StarNumberInfoAdder2.cs" />
+    <Compile Include="HarmonyPatches\StarNumberSetter.cs" />
+    <Compile Include="HarmonyPatches\MapDataGetter.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Configuration\PluginConfig.cs" />
-    <Compile Include="SettingViewController.cs" />
-    <Compile Include="StarNumberPredictor.cs" />
-    <Compile Include="PredictStarNumberModController.cs" />
+    <Compile Include="Views\SettingViewController.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -169,7 +167,7 @@
   <ItemGroup>
     <None Include="Directory.Build.props" Condition="Exists('Directory.Build.props')" />
     <None Include="PredictStarNumberMod.csproj.user" Condition="Exists('PredictStarNumberMod.csproj.user')" />
-    <EmbeddedResource Include="SettingViewController.bsml">
+    <EmbeddedResource Include="Views\SettingViewController.bsml">
       <DependentUpon>SettingViewController.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
