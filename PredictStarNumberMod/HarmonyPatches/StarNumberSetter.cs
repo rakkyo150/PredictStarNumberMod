@@ -44,7 +44,7 @@ namespace PredictStarNumberMod.Patches
             // 非同期で書き換えをする必要がある
             async void wrapper(TextMeshProUGUI[] fields)
             {
-                string predictedStarNumber= await PredictStarNumber(MapDataDeliverer.Instance);
+                string predictedStarNumber= await PredictStarNumber(MapDataDeliverer.instance);
                 string showedStarNumber= $"({predictedStarNumber})";
                 fields[1].text = showedStarNumber;
             }    

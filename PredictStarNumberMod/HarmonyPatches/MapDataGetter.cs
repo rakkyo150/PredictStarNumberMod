@@ -34,8 +34,8 @@ namespace PredictStarNumberMod.Patches
             // Plugin.Log.Info(hash);
             // Plugin.Log.Info(mapType);
 
-            MapDataDeliverer.Instance.SetHash(hash);
-            MapDataDeliverer.Instance.SetMapType(mapType);
+            MapDataDeliverer.instance.SetHash(hash);
+            MapDataDeliverer.instance.SetMapType(mapType);
 
             // From BetterSongList.Util.BeatmapsUtil
             string GetHashOfPreview(IPreviewBeatmapLevel preview)

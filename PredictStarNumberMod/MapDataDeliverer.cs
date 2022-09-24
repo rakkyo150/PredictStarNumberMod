@@ -8,10 +8,8 @@ using System.Threading.Tasks;
 
 namespace PredictStarNumberMod
 {
-    internal class MapDataDeliverer
+    internal class MapDataDeliverer:PersistentSingleton<MapDataDeliverer>
     {
-        public static MapDataDeliverer Instance { get; set; }
-
         private string hash=string.Empty;
         private string mapType=string.Empty;
 
