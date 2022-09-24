@@ -1,0 +1,4 @@
+﻿
+<settings-container>
+	<bool-setting text="Enable" value="Enable" apply-on-change="true"></bool-setting>
+</settings-container>
