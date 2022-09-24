@@ -1,16 +1,8 @@
-﻿using HarmonyLib;
+﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using BetterSongList.HarmonyPatches;
-using UnityEngine;
-using IPA.Utilities;
-using System.Reflection;
-using TMPro;
-using Newtonsoft.Json;
 using System.Net.Http;
 using System.Threading.Tasks;
+using TMPro;
 
 /// <summary>
 /// See https://github.com/pardeike/Harmony/wiki for a full reference on Harmony.
@@ -28,7 +20,7 @@ namespace PredictStarNumberMod.Patches
         ///     added three _ to the beginning to reference it in the patch. Adding ref means we can change it.</param>
         // Postfixにパッチをあてているせいでパッチ当てられるPostfixの引数は取得できない模様
         static void Postfix(ref TextMeshProUGUI[] ___fields)
-        {            
+        {
             // IDifficultyBeatmap selectedDifficultyBeatmap = BS_Utils.Plugin.LevelData.GameplayCoreSceneSetupData.difficultyBeatmap;はNullになる
 
             // Resources.FindObjectsOfTypeAll<IDifficultyBeatmap>().FirstOrDefault();はUnityのObjectじゃないのでダメ
@@ -40,18 +32,18 @@ namespace PredictStarNumberMod.Patches
             if (Double.TryParse(___fields[1].text, out _)) return;
 
             ___fields[1].text = "...";
-            
+
             // 非同期で書き換えをする必要がある
             async void wrapper(TextMeshProUGUI[] fields)
             {
-                string predictedStarNumber= await PredictStarNumber(MapDataDeliverer.instance);
-                string showedStarNumber= $"({predictedStarNumber})";
+                string predictedStarNumber = await PredictStarNumber(MapDataDeliverer.instance);
+                string showedStarNumber = $"({predictedStarNumber})";
                 fields[1].text = showedStarNumber;
-            }    
+            }
 
             wrapper(___fields);
 
-            
+
             async Task<string> PredictStarNumber(MapDataDeliverer mapDataDeliverer)
             {
                 string endpoint = $"https://predictstarnumber.herokuapp.com/api2/hash/{mapDataDeliverer.Hash}";

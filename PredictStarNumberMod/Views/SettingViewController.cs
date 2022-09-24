@@ -1,19 +1,14 @@
-﻿using BeatSaberMarkupLanguage;
-using BeatSaberMarkupLanguage.Attributes;
-using BeatSaberMarkupLanguage.Components;
-using BeatSaberMarkupLanguage.GameplaySetup;
+﻿using BeatSaberMarkupLanguage.Attributes;
 using BeatSaberMarkupLanguage.Settings;
 using BeatSaberMarkupLanguage.ViewControllers;
 using PredictStarNumberMod.Configuration;
-using System;
-using System.Collections.Generic;
 using Zenject;
 
 namespace PredictStarNumberMod
 {
     [HotReload(RelativePathToLayout = @"SettingViewController.bsml")]
     [ViewDefinition("PredictStarNumberMod.SettingViewController.bsml")]
-    internal class SettingViewController : BSMLAutomaticViewController,IInitializable
+    internal class SettingViewController : BSMLAutomaticViewController, IInitializable
     {
         private string ResourceName => string.Join(".", this.GetType().Namespace, this.GetType().Name);
 
@@ -32,7 +27,7 @@ namespace PredictStarNumberMod
 
         public void Dispose()
         {
-            if(PluginConfig.Instance!=null) BSMLSettings.instance.RemoveSettingsMenu(this);
+            if (PluginConfig.Instance != null) BSMLSettings.instance.RemoveSettingsMenu(this);
         }
 
         public void Initialize()

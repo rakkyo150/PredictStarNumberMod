@@ -1,17 +1,9 @@
-﻿using PredictStarNumberMod.Configuration;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PredictStarNumberMod
+﻿namespace PredictStarNumberMod
 {
-    internal class MapDataDeliverer:PersistentSingleton<MapDataDeliverer>
+    internal class MapDataDeliverer : PersistentSingleton<MapDataDeliverer>
     {
-        private string hash=string.Empty;
-        private string mapType=string.Empty;
+        private string hash = string.Empty;
+        private string mapType = string.Empty;
 
         public string Hash => hash;
         public string MapType => mapType;

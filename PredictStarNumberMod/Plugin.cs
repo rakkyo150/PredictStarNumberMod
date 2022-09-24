@@ -1,19 +1,13 @@
-﻿using IPA;
+﻿using HarmonyLib;
+using IPA;
 using IPA.Config;
 using IPA.Config.Stores;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
-using UnityEngine;
-using IPALogger = IPA.Logging.Logger;
-using Zenject;
-using SiraUtil.Zenject;
 using PredictStarNumberMod.Installers;
-using HarmonyLib;
 using PredictStarNumberMod.Patches;
+using SiraUtil.Zenject;
+using System;
+using System.Reflection;
+using IPALogger = IPA.Logging.Logger;
 
 namespace PredictStarNumberMod
 {
@@ -44,7 +38,7 @@ namespace PredictStarNumberMod
         #region BSIPA Config
         //Uncomment to use BSIPA's config
         [Init]
-        public void InitWithConfig(Config conf,Zenjector injector)
+        public void InitWithConfig(Config conf, Zenjector injector)
         {
             Configuration.PluginConfig.Instance = conf.Generated<Configuration.PluginConfig>();
             injector.Install<MenuInstaller>(Location.Menu);
