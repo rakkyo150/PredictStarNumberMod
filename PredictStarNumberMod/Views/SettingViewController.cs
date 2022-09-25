@@ -32,7 +32,7 @@ namespace PredictStarNumberMod
 
         public void Initialize()
         {
-            BSMLSettings.instance.AddSettingsMenu("PredictStarNumberMod", ResourceName, this);
+            BSMLSettings.instance.AddSettingsMenu("<size=85%>PredictStarNumberMod</size>", ResourceName, this);
         }
 
         [UIAction("#post-parse")]
