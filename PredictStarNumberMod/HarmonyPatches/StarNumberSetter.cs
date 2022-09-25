@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json;
+using PredictStarNumberMod.Configuration;
 using System;
 using System.Net.Http;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using TMPro;
 
@@ -22,9 +24,10 @@ namespace PredictStarNumberMod.Patches
         static void Postfix(ref TextMeshProUGUI[] ___fields)
         {
             // IDifficultyBeatmap selectedDifficultyBeatmap = BS_Utils.Plugin.LevelData.GameplayCoreSceneSetupData.difficultyBeatmap;はNullになる
-
             // Resources.FindObjectsOfTypeAll<IDifficultyBeatmap>().FirstOrDefault();はUnityのObjectじゃないのでダメ
 
+            if (!PluginConfig.Instance.Enable) return;
+            
             // データなし
             if (___fields[1].text == "?") return;
 
@@ -37,6 +40,7 @@ namespace PredictStarNumberMod.Patches
             async void wrapper(TextMeshProUGUI[] fields)
             {
                 string predictedStarNumber = await PredictStarNumber(MapDataDeliverer.instance);
+                // Plugin.Log.Info(predictedStarNumber);
                 string showedStarNumber = $"({predictedStarNumber})";
                 fields[1].text = showedStarNumber;
             }

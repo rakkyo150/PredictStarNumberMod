@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using PredictStarNumberMod.Configuration;
 
 /// <summary>
 /// See https://github.com/pardeike/Harmony/wiki for a full reference on Harmony.
@@ -22,6 +23,8 @@ namespace PredictStarNumberMod.Patches
         [HarmonyBefore(new string[] { "Kinsi55.BeatSaber.BetterSongList" })] // If another mod patches this method, apply this patch after the other mod's.
         static void Postfix(IDifficultyBeatmap ____selectedDifficultyBeatmap)
         {
+            if (!PluginConfig.Instance.Enable) return;
+            
             string hash = GetHashOfPreview(____selectedDifficultyBeatmap.level);
             string mapType = ____selectedDifficultyBeatmap.parentDifficultyBeatmapSet.beatmapCharacteristic.serializedName
                 + "-" + ____selectedDifficultyBeatmap.difficulty.ToString();
