@@ -2,7 +2,6 @@
 using PredictStarNumberMod.Configuration;
 using System;
 using System.Net.Http;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using TMPro;
 
@@ -13,6 +12,9 @@ namespace PredictStarNumberMod.Patches
 {
     public class StarNumberSetter
     {
+        internal static string mapHash = string.Empty;
+        internal static string mapType = string.Empty;
+
         /// <summary>
         /// This code is run after the original code in MethodToPatch is run.
         /// </summary>
@@ -27,7 +29,7 @@ namespace PredictStarNumberMod.Patches
             // Resources.FindObjectsOfTypeAll<IDifficultyBeatmap>().FirstOrDefault();はUnityのObjectじゃないのでダメ
 
             if (!PluginConfig.Instance.Enable) return;
-            
+
             // データなし
             if (___fields[1].text == "?") return;
 
@@ -39,7 +41,7 @@ namespace PredictStarNumberMod.Patches
             // 非同期で書き換えをする必要がある
             async void wrapper(TextMeshProUGUI[] fields)
             {
-                string predictedStarNumber = await PredictStarNumber(MapDataDeliverer.instance);
+                string predictedStarNumber = await PredictStarNumber();
                 // Plugin.Log.Info(predictedStarNumber);
                 string showedStarNumber = $"({predictedStarNumber})";
                 fields[1].text = showedStarNumber;
@@ -48,9 +50,9 @@ namespace PredictStarNumberMod.Patches
             wrapper(___fields);
 
 
-            async Task<string> PredictStarNumber(MapDataDeliverer mapDataDeliverer)
+            async Task<string> PredictStarNumber()
             {
-                string endpoint = $"https://predictstarnumber.herokuapp.com/api2/hash/{mapDataDeliverer.Hash}";
+                string endpoint = $"https://predictstarnumber.herokuapp.com/api2/hash/{mapHash}";
 
                 HttpClient client = new HttpClient();
                 var response = await client.GetAsync(endpoint);
@@ -58,7 +60,7 @@ namespace PredictStarNumberMod.Patches
 
                 dynamic jsonDynamic = JsonConvert.DeserializeObject<dynamic>(jsonString);
 
-                string rank = JsonConvert.SerializeObject(jsonDynamic[mapDataDeliverer.MapType]);
+                string rank = JsonConvert.SerializeObject(jsonDynamic[mapType]);
 
                 return rank;
             }

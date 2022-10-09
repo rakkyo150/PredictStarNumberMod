@@ -138,7 +138,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MapDataDeliverer.cs" />
     <Compile Include="Installers\MenuInstaller.cs" />
     <Compile Include="HarmonyPatches\StarNumberSetter.cs" />
     <Compile Include="HarmonyPatches\MapDataGetter.cs" />

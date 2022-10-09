@@ -24,16 +24,16 @@ namespace PredictStarNumberMod.Patches
         static void Postfix(IDifficultyBeatmap ____selectedDifficultyBeatmap)
         {
             if (!PluginConfig.Instance.Enable) return;
-            
-            string hash = GetHashOfPreview(____selectedDifficultyBeatmap.level);
+
+            string mapHash = GetHashOfPreview(____selectedDifficultyBeatmap.level);
             string mapType = ____selectedDifficultyBeatmap.parentDifficultyBeatmapSet.beatmapCharacteristic.serializedName
                 + "-" + ____selectedDifficultyBeatmap.difficulty.ToString();
 
             // Plugin.Log.Info(hash);
             // Plugin.Log.Info(mapType);
 
-            MapDataDeliverer.instance.SetHash(hash);
-            MapDataDeliverer.instance.SetMapType(mapType);
+            StarNumberSetter.mapHash = mapHash;
+            StarNumberSetter.mapType = mapType;
 
             // From BetterSongList.Util.BeatmapsUtil
             string GetHashOfPreview(IPreviewBeatmapLevel preview)
