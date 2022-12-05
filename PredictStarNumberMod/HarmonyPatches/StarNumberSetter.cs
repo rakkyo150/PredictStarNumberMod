@@ -52,7 +52,7 @@ namespace PredictStarNumberMod.Patches
 
             async Task<string> PredictStarNumber()
             {
-                string endpoint = $"https://predictstarnumber.herokuapp.com/api2/hash/{mapHash}";
+                string endpoint = $"https://predictstarnumber.onrender.com/api2/hash/{mapHash}";
 
                 HttpClient client = new HttpClient();
                 var response = await client.GetAsync(endpoint);
