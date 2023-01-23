@@ -1,6 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.ML.OnnxRuntime;
+using Microsoft.ML.OnnxRuntime.Tensors;
+using Newtonsoft.Json;
 using PredictStarNumberMod.Configuration;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using TMPro;
@@ -13,7 +17,12 @@ namespace PredictStarNumberMod.Patches
     public class StarNumberSetter
     {
         internal static string mapHash = string.Empty;
-        internal static string mapType = string.Empty;
+        internal static BeatmapDifficulty difficulty = BeatmapDifficulty.Easy;
+        internal static int difficultyRank = int.MinValue;
+        internal static string characteristic = string.Empty;
+        internal static MapDataGetter.MapData mapData = new MapDataGetter.MapData(float.MinValue, float.MinValue, int.MinValue,
+            int.MinValue, float.MinValue, float.MinValue, int.MinValue, int.MinValue, int.MinValue, float.MinValue, int.MinValue,
+            int.MinValue, int.MinValue, int.MinValue, int.MinValue);
 
         /// <summary>
         /// This code is run after the original code in MethodToPatch is run.
@@ -39,12 +48,18 @@ namespace PredictStarNumberMod.Patches
             ___fields[1].text = "...";
 
             // 非同期で書き換えをする必要がある
-            async void wrapper(TextMeshProUGUI[] fields)
+            async Task wrapper(TextMeshProUGUI[] fields)
             {
-                string predictedStarNumber = await PredictStarNumber();
-                // Plugin.Log.Info(predictedStarNumber);
-                string showedStarNumber = $"({predictedStarNumber})";
-                fields[1].text = showedStarNumber;
+                try
+                {
+                    string predictedStarNumber = await PredictStarNumber();
+                    fields[1].text = $"({predictedStarNumber})";
+                }
+                catch(Exception ex)
+                {
+                    Plugin.Log.Error(ex);
+                    fields[1].text = "Error";
+                }
             }
 
             wrapper(___fields);
@@ -52,17 +67,45 @@ namespace PredictStarNumberMod.Patches
 
             async Task<string> PredictStarNumber()
             {
-                string endpoint = $"https://predictstarnumber.onrender.com/api2/hash/{mapHash}";
 
-                HttpClient client = new HttpClient();
-                var response = await client.GetAsync(endpoint);
-                string jsonString = await response.Content.ReadAsStringAsync();
-
-                dynamic jsonDynamic = JsonConvert.DeserializeObject<dynamic>(jsonString);
-
-                string rank = JsonConvert.SerializeObject(jsonDynamic[mapType]);
-
-                return rank;
+                StarNumberSetter.mapData = await MapDataGetter.GetMapData(mapHash, difficulty, characteristic);
+                InferenceSession session = new InferenceSession("model.onnx");
+                string inputNoneName = session.InputMetadata.First().Key;
+                double[] data = new double[15]
+                {
+                    mapData.Bpm,
+                    mapData.Duration,
+                    mapData.Difficulty,
+                    mapData.SageScore,
+                    mapData.Njs,
+                    mapData.Offset,
+                    mapData.Notes,
+                    mapData.Bombs,
+                    mapData.Obstacles,
+                    mapData.Nps,
+                    mapData.Events,
+                    mapData.Chroma,
+                    mapData.Errors,
+                    mapData.Warns,
+                    mapData.Resets
+                };
+                var innodedims = session.InputMetadata.First().Value.Dimensions;
+#if DEBUG
+                Plugin.Log.Info(string.Join(", ",innodedims));
+                Plugin.Log.Info(string.Join(". ", data));
+#endif
+                var inputTensor = new DenseTensor<double>(data, new int[] {1,15}, false);  // let's say data is fed into the Tensor objects
+                List<NamedOnnxValue> inputs = new List<NamedOnnxValue>()
+            {
+                NamedOnnxValue.CreateFromTensor<double>(inputNoneName, inputTensor)
+            };
+                using (var results = session.Run(inputs))
+                {
+#if DEBUG
+                    Plugin.Log.Info(string.Join(". ", results));
+#endif
+                    return results.First().AsTensor<double>()[0].ToString("0.00");
+                }
             }
         }
     }
