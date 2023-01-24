@@ -139,6 +139,7 @@ namespace PredictStarNumberMod.Patches
             var response = await client.GetAsync(endpoint);
             string jsonString = await response.Content.ReadAsStringAsync();
             MapDetail mapDetail = JsonConvert.DeserializeObject<MapDetail>(jsonString);
+            client.Dispose();
 
             IList<Version> versions = mapDetail.versions;
             IList<Difficulty> difficulties = versions[versions.Count-1].diffs;

@@ -5,9 +5,12 @@ using PredictStarNumberMod.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Security.Policy;
 using System.Threading.Tasks;
 using TMPro;
+using static PredictStarNumberMod.Patches.MapDataGetter;
 
 /// <summary>
 /// See https://github.com/pardeike/Harmony/wiki for a full reference on Harmony.
@@ -24,6 +27,22 @@ namespace PredictStarNumberMod.Patches
             int.MinValue, float.MinValue, float.MinValue, int.MinValue, int.MinValue, int.MinValue, float.MinValue, int.MinValue,
             int.MinValue, int.MinValue, int.MinValue, int.MinValue);
 
+        private static string modelAssetEndpoint = "https://api.github.com/repos/rakkyo150/PredictStarNumberHelper/releases/latest";
+        private static byte[] modelByte = new byte[] { 0 };
+        private static InferenceSession session = null;
+
+        private static float originalFontSize = float.MinValue;
+
+        public class LatestRelease
+        {
+            public List<DownloadUrl> assets;
+        }
+        
+        public class DownloadUrl
+        {
+            public string browser_download_url;
+        }
+        
         /// <summary>
         /// This code is run after the original code in MethodToPatch is run.
         /// </summary>
@@ -37,7 +56,15 @@ namespace PredictStarNumberMod.Patches
             // IDifficultyBeatmap selectedDifficultyBeatmap = BS_Utils.Plugin.LevelData.GameplayCoreSceneSetupData.difficultyBeatmap;はNullになる
             // Resources.FindObjectsOfTypeAll<IDifficultyBeatmap>().FirstOrDefault();はUnityのObjectじゃないのでダメ
 
-            ___fields[1].fontSize = 4f;
+            if(originalFontSize == float.MinValue)
+            {
+                originalFontSize = ___fields[1].fontSize;
+            }
+            
+            if(___fields[1].fontSize != originalFontSize)
+            {
+                ___fields[1].fontSize = originalFontSize;
+            }
 
             if (!PluginConfig.Instance.Enable) return;
 
@@ -77,7 +104,13 @@ namespace PredictStarNumberMod.Patches
                 catch (Exception ex)
                 {
                     Plugin.Log.Error(ex);
-                    fields[1].text = "Error";
+                    if (isRankedMap)
+                    {
+                        fields[1].text = originalText + "(Error)";
+                        fields[1].fontSize = 3.3f;
+                        return;
+                    }
+                    fields[1].text = "(Error)";
                 }
             }
 
@@ -86,10 +119,19 @@ namespace PredictStarNumberMod.Patches
 
             async Task<string> PredictStarNumber()
             {
+                var sw = new System.Diagnostics.Stopwatch();
+                sw.Start();
+                if(modelByte.Length == 1)
+                {
+                    modelByte = await GetModel();
+                }
 
                 StarNumberSetter.mapData = await MapDataGetter.GetMapData(mapHash, difficulty, characteristic);
-                InferenceSession session = new InferenceSession("model.onnx");
-                string inputNoneName = session.InputMetadata.First().Key;
+                if(session == null)
+                {
+                    session = new InferenceSession(modelByte);
+                }
+                string inputNoneName = session?.InputMetadata.First().Key;
                 double[] data = new double[15]
                 {
                     mapData.Bpm,
@@ -108,7 +150,7 @@ namespace PredictStarNumberMod.Patches
                     mapData.Warns,
                     mapData.Resets
                 };
-                var innodedims = session.InputMetadata.First().Value.Dimensions;
+                var innodedims = session?.InputMetadata.First().Value.Dimensions;
 #if DEBUG
                 Plugin.Log.Info(string.Join(", ",innodedims));
                 Plugin.Log.Info(string.Join(". ", data));
@@ -118,13 +160,36 @@ namespace PredictStarNumberMod.Patches
             {
                 NamedOnnxValue.CreateFromTensor<double>(inputNoneName, inputTensor)
             };
-                using (var results = session.Run(inputs))
+                using (var results = session?.Run(inputs))
                 {
 #if DEBUG
                     Plugin.Log.Info(string.Join(". ", results));
 #endif
+
+                    sw.Stop();
+                    Plugin.Log.Info(sw.Elapsed.ToString());
                     return results.First().AsTensor<double>()[0].ToString("0.00");
                 }
+            }
+
+            async Task<byte[]> GetModel()
+            {
+                HttpClient client = new HttpClient();
+                var request = new HttpRequestMessage(HttpMethod.Get, modelAssetEndpoint);
+                request.Headers.Add("User-Agent", "C# App");
+                var response = await client.SendAsync(request);
+                string assetString = await response.Content.ReadAsStringAsync();
+                LatestRelease latestRelease = JsonConvert.DeserializeObject<LatestRelease>(assetString);
+                string modelDownloadUrl = latestRelease.assets[2].browser_download_url;
+#if DEBUG
+                Plugin.Log.Info(modelDownloadUrl);
+#endif
+                request = new HttpRequestMessage(HttpMethod.Get, modelDownloadUrl);
+                request.Headers.Add("User-Agent", "C# App");
+                var modelResponse = await client.SendAsync(request);
+                client.Dispose();
+                request.Dispose();
+                return await modelResponse.Content.ReadAsByteArrayAsync();
             }
         }
 
