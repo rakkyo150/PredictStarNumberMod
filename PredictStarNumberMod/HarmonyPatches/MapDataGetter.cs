@@ -2,6 +2,7 @@
 using HarmonyLib.Tools;
 using Newtonsoft.Json;
 using PredictStarNumberMod.Configuration;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using TMPro;
@@ -74,6 +75,46 @@ namespace PredictStarNumberMod.Patches
             }
         }
 
+        public class MapDetail
+        {
+            public Metadata metadata { get; set; }
+            public IList<Version> versions { get; set; }
+        }
+
+        public class Metadata
+        {
+            public float bpm { get; set; }
+            public float duration { get; set; }
+        }
+
+        public class Version
+        {
+            public int sageScore { get; set; }
+            public IList<Difficulty> diffs { get; set; }
+        }
+
+        public class Difficulty
+        {
+            public float njs { get; set; }
+            public float offset { get; set; }
+            public int notes { get; set; }
+            public int bombs { get; set; }
+            public int obstacles { get; set; }
+            public float nps { get; set; }
+            public string characteristic { get; set; }
+            public string difficulty { get; set; }
+            public int events { get; set; }
+            public bool chroma { get; set; }
+            public ParitySummary paritySummary { get; set; }
+        }
+
+        public class ParitySummary
+        {
+            public int errors { get; set; }
+            public int warns { get; set; }
+            public int resets { get; set; }
+        }
+
         internal static async Task<MapData> GetMapData(string hash, BeatmapDifficulty beatmapDifficulty ,string characteristic)
         {
             string endpoint = $"https://api.beatsaver.com/maps/hash/{hash}";
@@ -97,50 +138,45 @@ namespace PredictStarNumberMod.Patches
             HttpClient client = new HttpClient();
             var response = await client.GetAsync(endpoint);
             string jsonString = await response.Content.ReadAsStringAsync();
-#if DEBUG
-            Plugin.Log.Info(jsonString);
-#endif
+            MapDetail mapDetail = JsonConvert.DeserializeObject<MapDetail>(jsonString);
 
-            dynamic mapDetail = JsonConvert.DeserializeObject<dynamic>(jsonString);
+            IList<Version> versions = mapDetail.versions;
+            IList<Difficulty> difficulties = versions[versions.Count-1].diffs;
 
-            dynamic versions = mapDetail["versions"];
-            dynamic mapDifficulty = versions[versions.Count-1]["diffs"];
-
-            foreach (var eachDifficulty in mapDifficulty)
+            foreach (Difficulty eachDifficulty in difficulties)
             {
-                if (eachDifficulty["difficulty"] != beatmapDifficulty.ToString()
-                    || eachDifficulty["characteristic"] != characteristic)
+                if (eachDifficulty.difficulty != beatmapDifficulty.ToString()
+                    || eachDifficulty.characteristic != characteristic)
                 {
                     continue;
                 }
 
-                bpm = mapDetail["metadata"]["bpm"];
-                duration = mapDetail["metadata"]["duration"];
+                bpm = mapDetail.metadata.bpm;
+                duration = mapDetail.metadata.duration;
                 difficulty = (int)beatmapDifficulty;
 #if DEBUG
                 Plugin.Log.Info("Difficulty : " + difficulty.ToString());
 #endif
-                if (versions[versions.Count - 1]["sageScore"] != null)
+                if (versions[versions.Count - 1].sageScore != null)
                 {
-                    sageScore = versions[versions.Count - 1]["sageScore"];
+                    sageScore = versions[versions.Count - 1].sageScore;
                 }
                 else
                 {
                     sageScore = 0;
                 }
-                njs = eachDifficulty["njs"];
-                offset = eachDifficulty["offset"];
-                notes = eachDifficulty["notes"];
-                bombs = eachDifficulty["bombs"];
-                obstacles = eachDifficulty["obstacles"];
-                nps = eachDifficulty["nps"];
-                characteristic = eachDifficulty["characteristic"];
-                events = eachDifficulty["events"];
-                chroma = eachDifficulty["chroma"]==true ? 1 : 0;
-                errors = eachDifficulty["paritySummary"]["errors"];
-                warns = eachDifficulty["paritySummary"]["warns"];
-                resets = eachDifficulty["paritySummary"]["resets"];
-                Plugin.Log.Info(resets.ToString());
+                njs = eachDifficulty.njs;
+                offset = eachDifficulty.offset;
+                notes = eachDifficulty.notes;
+                bombs = eachDifficulty.bombs;
+                obstacles = eachDifficulty.obstacles;
+                nps = eachDifficulty.nps;
+                characteristic = eachDifficulty.characteristic;
+                events = eachDifficulty.events;
+                chroma = eachDifficulty.chroma ? 1 : 0;
+                errors = eachDifficulty.paritySummary.errors;
+                warns = eachDifficulty.paritySummary.warns;
+                resets = eachDifficulty.paritySummary.resets;
                 break;
             }
 
