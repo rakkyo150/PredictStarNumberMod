@@ -25,6 +25,18 @@ namespace PredictStarNumberMod
             }
         }
 
+        public bool Parallel
+        {
+            get { return PluginConfig.Instance.Parallel; }
+            set
+            {
+                if (PluginConfig.Instance.Parallel == value) return;
+                PluginConfig.Instance.Parallel = value;
+                Plugin.Log.Info("Parallel Enable");
+                NotifyPropertyChanged();
+            }
+        }
+
         public void Dispose()
         {
             if (PluginConfig.Instance != null) BSMLSettings.instance.RemoveSettingsMenu(this);

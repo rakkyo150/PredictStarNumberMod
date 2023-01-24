@@ -1,4 +1,5 @@
 ﻿
 <settings-container>
 	<bool-setting text="Enable" value="Enable" apply-on-change="true"></bool-setting>
+	<bool-setting text="Parallel" value="Parallel" apply-on-change="true" hover-hint="Do you want to show predicted star number in ranked maps in parallel?"></bool-setting>
 </settings-container>

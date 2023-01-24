@@ -37,25 +37,44 @@ namespace PredictStarNumberMod.Patches
             // IDifficultyBeatmap selectedDifficultyBeatmap = BS_Utils.Plugin.LevelData.GameplayCoreSceneSetupData.difficultyBeatmap;はNullになる
             // Resources.FindObjectsOfTypeAll<IDifficultyBeatmap>().FirstOrDefault();はUnityのObjectじゃないのでダメ
 
+            ___fields[1].fontSize = 4f;
+
             if (!PluginConfig.Instance.Enable) return;
 
             // データなし
             if (___fields[1].text == "?") return;
 
-            // ランク
-            if (Double.TryParse(___fields[1].text, out _)) return;
+            if (!PluginConfig.Instance.Parallel && IsRankedMap(___fields)) return;
 
-            ___fields[1].text = "...";
+            string originalText = ___fields[1].text;
+            bool isRankedMap = IsRankedMap(___fields);
+
+            if (isRankedMap)
+            {
+                ___fields[1].text = originalText + "...";
+            }
+            else
+            {
+                ___fields[1].text = "...";
+            }
 
             // 非同期で書き換えをする必要がある
             async Task wrapper(TextMeshProUGUI[] fields)
             {
                 try
                 {
-                    string predictedStarNumber = await PredictStarNumber();
+                    string predictedStarNumber = await PredictStarNumber();// ランク
+                    if (isRankedMap)
+                    {
+                        fields[1].text = originalText + $"({predictedStarNumber})";
+                        Plugin.Log.Info(fields[1].fontSize.ToString());
+                        fields[1].fontSize = 3.3f;
+                        return;
+                    }
+
                     fields[1].text = $"({predictedStarNumber})";
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Plugin.Log.Error(ex);
                     fields[1].text = "Error";
@@ -107,6 +126,11 @@ namespace PredictStarNumberMod.Patches
                     return results.First().AsTensor<double>()[0].ToString("0.00");
                 }
             }
+        }
+
+        private static bool IsRankedMap(TextMeshProUGUI[] fields)
+        {
+            return Double.TryParse(fields[1].text, out _);
         }
     }
 }
