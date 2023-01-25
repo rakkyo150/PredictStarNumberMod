@@ -37,12 +37,12 @@ namespace PredictStarNumberMod.Patches
         {
             public List<DownloadUrl> assets;
         }
-        
+
         public class DownloadUrl
         {
             public string browser_download_url;
         }
-        
+
         /// <summary>
         /// This code is run after the original code in MethodToPatch is run.
         /// </summary>
@@ -56,12 +56,12 @@ namespace PredictStarNumberMod.Patches
             // IDifficultyBeatmap selectedDifficultyBeatmap = BS_Utils.Plugin.LevelData.GameplayCoreSceneSetupData.difficultyBeatmap;はNullになる
             // Resources.FindObjectsOfTypeAll<IDifficultyBeatmap>().FirstOrDefault();はUnityのObjectじゃないのでダメ
 
-            if(originalFontSize == float.MinValue)
+            if (originalFontSize == float.MinValue)
             {
                 originalFontSize = ___fields[1].fontSize;
             }
-            
-            if(___fields[1].fontSize != originalFontSize)
+
+            if (___fields[1].fontSize != originalFontSize)
             {
                 ___fields[1].fontSize = originalFontSize;
             }
@@ -73,17 +73,18 @@ namespace PredictStarNumberMod.Patches
 
             if (!PluginConfig.Instance.Parallel && IsRankedMap(___fields)) return;
 
-            string originalText = ___fields[1].text;
             bool isRankedMap = IsRankedMap(___fields);
 
             if (isRankedMap)
             {
-                ___fields[1].text = originalText + "...";
+                ___fields[1].text  += "...";
             }
             else
             {
                 ___fields[1].text = "...";
             }
+
+            wrapper(___fields);
 
             // 非同期で書き換えをする必要がある
             async Task wrapper(TextMeshProUGUI[] fields)
@@ -93,9 +94,7 @@ namespace PredictStarNumberMod.Patches
                     string predictedStarNumber = await PredictStarNumber();// ランク
                     if (isRankedMap)
                     {
-                        fields[1].text = originalText + $"({predictedStarNumber})";
-                        Plugin.Log.Info(fields[1].fontSize.ToString());
-                        fields[1].fontSize = 3.3f;
+                        SetPredictedStarNumberForRankedMap(fields, predictedStarNumber);
                         return;
                     }
 
@@ -106,7 +105,7 @@ namespace PredictStarNumberMod.Patches
                     Plugin.Log.Error(ex);
                     if (isRankedMap)
                     {
-                        fields[1].text = originalText + "(Error)";
+                        SetPredictedStarNumberForRankedMap(fields, "Error");
                         fields[1].fontSize = 3.3f;
                         return;
                     }
@@ -114,20 +113,17 @@ namespace PredictStarNumberMod.Patches
                 }
             }
 
-            wrapper(___fields);
-
-
             async Task<string> PredictStarNumber()
             {
                 var sw = new System.Diagnostics.Stopwatch();
                 sw.Start();
-                if(modelByte.Length == 1)
+                if (modelByte.Length == 1)
                 {
                     modelByte = await GetModel();
                 }
 
                 StarNumberSetter.mapData = await MapDataGetter.GetMapData(mapHash, difficulty, characteristic);
-                if(session == null)
+                if (session == null)
                 {
                     session = new InferenceSession(modelByte);
                 }
@@ -150,16 +146,16 @@ namespace PredictStarNumberMod.Patches
                     mapData.Warns,
                     mapData.Resets
                 };
-                var innodedims = session?.InputMetadata.First().Value.Dimensions;
 #if DEBUG
+                var innodedims = session?.InputMetadata.First().Value.Dimensions;
                 Plugin.Log.Info(string.Join(", ",innodedims));
                 Plugin.Log.Info(string.Join(". ", data));
 #endif
-                var inputTensor = new DenseTensor<double>(data, new int[] {1,15}, false);  // let's say data is fed into the Tensor objects
+                var inputTensor = new DenseTensor<double>(data, new int[] { 1, data.Length }, false);  // let's say data is fed into the Tensor objects
                 List<NamedOnnxValue> inputs = new List<NamedOnnxValue>()
-            {
-                NamedOnnxValue.CreateFromTensor<double>(inputNoneName, inputTensor)
-            };
+                    {
+                        NamedOnnxValue.CreateFromTensor<double>(inputNoneName, inputTensor)
+                    };
                 using (var results = session?.Run(inputs))
                 {
 #if DEBUG
@@ -191,6 +187,17 @@ namespace PredictStarNumberMod.Patches
                 request.Dispose();
                 return await modelResponse.Content.ReadAsByteArrayAsync();
             }
+        }
+
+        private static void SetPredictedStarNumberForRankedMap(TextMeshProUGUI[] fields, string predictedStarNumber)
+        {
+            fields[1].text = fields[1].text.Replace("...", "");
+            // 初回は２回呼び出されるみたいなので
+            if (!fields[1].text.Contains("(") && !fields[1].text.Contains(")"))
+            {
+                fields[1].text += $"({predictedStarNumber})";
+            }
+            fields[1].fontSize = 3.3f;
         }
 
         private static bool IsRankedMap(TextMeshProUGUI[] fields)
