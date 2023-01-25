@@ -5,12 +5,9 @@ using PredictStarNumberMod.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
-using System.Security.Policy;
 using System.Threading.Tasks;
 using TMPro;
-using static PredictStarNumberMod.Patches.MapDataGetter;
 
 /// <summary>
 /// See https://github.com/pardeike/Harmony/wiki for a full reference on Harmony.
@@ -77,7 +74,7 @@ namespace PredictStarNumberMod.Patches
 
             if (isRankedMap)
             {
-                ___fields[1].text  += "...";
+                ___fields[1].text += "...";
             }
             else
             {

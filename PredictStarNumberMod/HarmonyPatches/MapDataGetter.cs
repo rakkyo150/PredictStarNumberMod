@@ -1,12 +1,9 @@
 ﻿using HarmonyLib;
-using HarmonyLib.Tools;
 using Newtonsoft.Json;
 using PredictStarNumberMod.Configuration;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using TMPro;
-using static PredictStarNumberMod.Patches.MapDataGetter;
 
 /// <summary>
 /// See https://github.com/pardeike/Harmony/wiki for a full reference on Harmony.
@@ -115,10 +112,10 @@ namespace PredictStarNumberMod.Patches
             public int resets { get; set; }
         }
 
-        internal static async Task<MapData> GetMapData(string hash, BeatmapDifficulty beatmapDifficulty ,string characteristic)
+        internal static async Task<MapData> GetMapData(string hash, BeatmapDifficulty beatmapDifficulty, string characteristic)
         {
             string endpoint = $"https://api.beatsaver.com/maps/hash/{hash}";
-            
+
             float bpm = float.MinValue;
             float duration = float.MinValue;
             int difficulty = int.MinValue;
@@ -142,7 +139,7 @@ namespace PredictStarNumberMod.Patches
             client.Dispose();
 
             IList<Version> versions = mapDetail.versions;
-            IList<Difficulty> difficulties = versions[versions.Count-1].diffs;
+            IList<Difficulty> difficulties = versions[versions.Count - 1].diffs;
 
             foreach (Difficulty eachDifficulty in difficulties)
             {
