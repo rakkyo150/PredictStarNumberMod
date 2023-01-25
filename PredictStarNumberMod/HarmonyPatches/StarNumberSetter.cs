@@ -1,9 +1,16 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.ML.OnnxRuntime;
+using Microsoft.ML.OnnxRuntime.Tensors;
+using Newtonsoft.Json;
 using PredictStarNumberMod.Configuration;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Security.Policy;
 using System.Threading.Tasks;
 using TMPro;
+using static PredictStarNumberMod.Patches.MapDataGetter;
 
 /// <summary>
 /// See https://github.com/pardeike/Harmony/wiki for a full reference on Harmony.
@@ -13,8 +20,29 @@ namespace PredictStarNumberMod.Patches
     public class StarNumberSetter
     {
         internal static string mapHash = string.Empty;
-        internal static string mapType = string.Empty;
+        internal static BeatmapDifficulty difficulty = BeatmapDifficulty.Easy;
+        internal static int difficultyRank = int.MinValue;
+        internal static string characteristic = string.Empty;
+        internal static MapDataGetter.MapData mapData = new MapDataGetter.MapData(float.MinValue, float.MinValue, int.MinValue,
+            int.MinValue, float.MinValue, float.MinValue, int.MinValue, int.MinValue, int.MinValue, float.MinValue, int.MinValue,
+            int.MinValue, int.MinValue, int.MinValue, int.MinValue);
 
+        private static string modelAssetEndpoint = "https://api.github.com/repos/rakkyo150/PredictStarNumberHelper/releases/latest";
+        private static byte[] modelByte = new byte[] { 0 };
+        private static InferenceSession session = null;
+
+        private static float originalFontSize = float.MinValue;
+
+        public class LatestRelease
+        {
+            public List<DownloadUrl> assets;
+        }
+        
+        public class DownloadUrl
+        {
+            public string browser_download_url;
+        }
+        
         /// <summary>
         /// This code is run after the original code in MethodToPatch is run.
         /// </summary>
@@ -28,23 +56,62 @@ namespace PredictStarNumberMod.Patches
             // IDifficultyBeatmap selectedDifficultyBeatmap = BS_Utils.Plugin.LevelData.GameplayCoreSceneSetupData.difficultyBeatmap;はNullになる
             // Resources.FindObjectsOfTypeAll<IDifficultyBeatmap>().FirstOrDefault();はUnityのObjectじゃないのでダメ
 
+            if(originalFontSize == float.MinValue)
+            {
+                originalFontSize = ___fields[1].fontSize;
+            }
+            
+            if(___fields[1].fontSize != originalFontSize)
+            {
+                ___fields[1].fontSize = originalFontSize;
+            }
+
             if (!PluginConfig.Instance.Enable) return;
 
             // データなし
             if (___fields[1].text == "?") return;
 
-            // ランク
-            if (Double.TryParse(___fields[1].text, out _)) return;
+            if (!PluginConfig.Instance.Parallel && IsRankedMap(___fields)) return;
 
-            ___fields[1].text = "...";
+            string originalText = ___fields[1].text;
+            bool isRankedMap = IsRankedMap(___fields);
+
+            if (isRankedMap)
+            {
+                ___fields[1].text = originalText + "...";
+            }
+            else
+            {
+                ___fields[1].text = "...";
+            }
 
             // 非同期で書き換えをする必要がある
-            async void wrapper(TextMeshProUGUI[] fields)
+            async Task wrapper(TextMeshProUGUI[] fields)
             {
-                string predictedStarNumber = await PredictStarNumber();
-                // Plugin.Log.Info(predictedStarNumber);
-                string showedStarNumber = $"({predictedStarNumber})";
-                fields[1].text = showedStarNumber;
+                try
+                {
+                    string predictedStarNumber = await PredictStarNumber();// ランク
+                    if (isRankedMap)
+                    {
+                        fields[1].text = originalText + $"({predictedStarNumber})";
+                        Plugin.Log.Info(fields[1].fontSize.ToString());
+                        fields[1].fontSize = 3.3f;
+                        return;
+                    }
+
+                    fields[1].text = $"({predictedStarNumber})";
+                }
+                catch (Exception ex)
+                {
+                    Plugin.Log.Error(ex);
+                    if (isRankedMap)
+                    {
+                        fields[1].text = originalText + "(Error)";
+                        fields[1].fontSize = 3.3f;
+                        return;
+                    }
+                    fields[1].text = "(Error)";
+                }
             }
 
             wrapper(___fields);
@@ -52,18 +119,83 @@ namespace PredictStarNumberMod.Patches
 
             async Task<string> PredictStarNumber()
             {
-                string endpoint = $"https://predictstarnumber.onrender.com/api2/hash/{mapHash}";
+                var sw = new System.Diagnostics.Stopwatch();
+                sw.Start();
+                if(modelByte.Length == 1)
+                {
+                    modelByte = await GetModel();
+                }
 
-                HttpClient client = new HttpClient();
-                var response = await client.GetAsync(endpoint);
-                string jsonString = await response.Content.ReadAsStringAsync();
+                StarNumberSetter.mapData = await MapDataGetter.GetMapData(mapHash, difficulty, characteristic);
+                if(session == null)
+                {
+                    session = new InferenceSession(modelByte);
+                }
+                string inputNoneName = session?.InputMetadata.First().Key;
+                double[] data = new double[15]
+                {
+                    mapData.Bpm,
+                    mapData.Duration,
+                    mapData.Difficulty,
+                    mapData.SageScore,
+                    mapData.Njs,
+                    mapData.Offset,
+                    mapData.Notes,
+                    mapData.Bombs,
+                    mapData.Obstacles,
+                    mapData.Nps,
+                    mapData.Events,
+                    mapData.Chroma,
+                    mapData.Errors,
+                    mapData.Warns,
+                    mapData.Resets
+                };
+                var innodedims = session?.InputMetadata.First().Value.Dimensions;
+#if DEBUG
+                Plugin.Log.Info(string.Join(", ",innodedims));
+                Plugin.Log.Info(string.Join(". ", data));
+#endif
+                var inputTensor = new DenseTensor<double>(data, new int[] {1,15}, false);  // let's say data is fed into the Tensor objects
+                List<NamedOnnxValue> inputs = new List<NamedOnnxValue>()
+            {
+                NamedOnnxValue.CreateFromTensor<double>(inputNoneName, inputTensor)
+            };
+                using (var results = session?.Run(inputs))
+                {
+#if DEBUG
+                    Plugin.Log.Info(string.Join(". ", results));
+#endif
 
-                dynamic jsonDynamic = JsonConvert.DeserializeObject<dynamic>(jsonString);
-
-                string rank = JsonConvert.SerializeObject(jsonDynamic[mapType]);
-
-                return rank;
+                    sw.Stop();
+                    Plugin.Log.Info(sw.Elapsed.ToString());
+                    return results.First().AsTensor<double>()[0].ToString("0.00");
+                }
             }
+
+            async Task<byte[]> GetModel()
+            {
+                HttpClient client = new HttpClient();
+                var request = new HttpRequestMessage(HttpMethod.Get, modelAssetEndpoint);
+                request.Headers.Add("User-Agent", "C# App");
+                var response = await client.SendAsync(request);
+                string assetString = await response.Content.ReadAsStringAsync();
+                LatestRelease latestRelease = JsonConvert.DeserializeObject<LatestRelease>(assetString);
+                string modelDownloadUrl = latestRelease.assets[2].browser_download_url;
+#if DEBUG
+                Plugin.Log.Info(modelDownloadUrl);
+#endif
+                request = new HttpRequestMessage(HttpMethod.Get, modelDownloadUrl);
+                request.Headers.Add("User-Agent", "C# App");
+                var modelResponse = await client.SendAsync(request);
+                client.Dispose();
+                request.Dispose();
+                return await modelResponse.Content.ReadAsByteArrayAsync();
+            }
+        }
+
+        private static bool IsRankedMap(TextMeshProUGUI[] fields)
+        {
+            return Double.TryParse(fields[1].text, out _);
         }
     }
 }
