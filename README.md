@@ -18,6 +18,6 @@ Chrome Extension : https://github.com/rakkyo150/PredictStarNumberExtension <br>
 flowchart
     First(RankedMapData) -- Training Data --> Second(PredictStarNumberHelper)
     Second -- Learned Model --> Third(PredictStarNumber)
+    Second -- Learned Model --> PredictStarNumberMod
     Third <-- REST API --> PredictStarNumberExtension
-    Third <-- REST API --> PredictStarNumberMod
 ```
