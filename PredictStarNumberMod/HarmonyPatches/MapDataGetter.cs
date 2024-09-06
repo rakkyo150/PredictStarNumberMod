@@ -86,7 +86,7 @@ namespace PredictStarNumberMod.Patches
 
         public class Version
         {
-            public int sageScore { get; set; }
+            public int? sageScore { get; set; }
             public IList<Difficulty> diffs { get; set; }
         }
 
@@ -157,7 +157,7 @@ namespace PredictStarNumberMod.Patches
 #endif
                 if (versions[versions.Count - 1].sageScore != null)
                 {
-                    sageScore = versions[versions.Count - 1].sageScore;
+                    sageScore = (int)versions[versions.Count - 1].sageScore;
                 }
                 else
                 {
