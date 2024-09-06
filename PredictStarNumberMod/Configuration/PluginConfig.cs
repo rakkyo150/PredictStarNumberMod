@@ -8,7 +8,7 @@ namespace PredictStarNumberMod.Configuration
     {
         public static PluginConfig Instance { get; set; }
         public virtual bool Enable { get; set; } = true; // Must be 'virtual' if you want BSIPA to detect a value change and save the config automatically.
-        public virtual bool Parallel { get; set; } = true;
+        public virtual bool DisplayValueInRankMap { get; set; } = true;
 
         /// <summary>
         /// This is called whenever BSIPA reads the config from disk (including when file changes are detected).
@@ -33,7 +33,7 @@ namespace PredictStarNumberMod.Configuration
         {
             // This instance's members populated from other
             this.Enable = other.Enable;
-            this.Parallel = other.Parallel;
+            this.DisplayValueInRankMap = other.DisplayValueInRankMap;
         }
     }
 }

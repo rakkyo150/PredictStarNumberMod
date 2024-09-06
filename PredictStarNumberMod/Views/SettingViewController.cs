@@ -20,19 +20,23 @@ namespace PredictStarNumberMod
             {
                 if (PluginConfig.Instance.Enable == value) return;
                 PluginConfig.Instance.Enable = value;
+#if DEBUG
                 Plugin.Log.Info("Enable");
+#endif
                 NotifyPropertyChanged();
             }
         }
 
         public bool Parallel
         {
-            get { return PluginConfig.Instance.Parallel; }
+            get { return PluginConfig.Instance.DisplayValueInRankMap; }
             set
             {
-                if (PluginConfig.Instance.Parallel == value) return;
-                PluginConfig.Instance.Parallel = value;
-                Plugin.Log.Info("Parallel Enable");
+                if (PluginConfig.Instance.DisplayValueInRankMap == value) return;
+                PluginConfig.Instance.DisplayValueInRankMap = value;
+#if DEBUG
+                Plugin.Log.Info("DisplayValueInRankMap Enable");
+#endif
                 NotifyPropertyChanged();
             }
         }
