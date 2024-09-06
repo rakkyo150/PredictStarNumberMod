@@ -194,7 +194,7 @@ namespace PredictStarNumberMod.Patches
             {
                 fields[1].text += $"({predictedStarNumber})";
             }
-            fields[1].fontSize = 3.3f;
+            fields[1].fontSize = 3.2f;
         }
 
         private static bool IsRankedMap(TextMeshProUGUI[] fields)
