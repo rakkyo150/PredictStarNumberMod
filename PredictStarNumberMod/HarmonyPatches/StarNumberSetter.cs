@@ -12,14 +12,13 @@ using TMPro;
 /// <summary>
 /// See https://github.com/pardeike/Harmony/wiki for a full reference on Harmony.
 /// </summary>
-namespace PredictStarNumberMod.Patches
+namespace PredictStarNumberMod.HarmonyPatches
 {
     public class StarNumberSetter
     {
         internal static string mapHash = string.Empty;
         internal static BeatmapDifficulty difficulty = BeatmapDifficulty.Easy;
-        internal static int difficultyRank = int.MinValue;
-        internal static string characteristic = string.Empty;
+        internal static BeatmapCharacteristicSO characteristic = null;
         internal static MapDataGetter.MapData mapData = new MapDataGetter.MapData(float.MinValue, float.MinValue, int.MinValue,
             int.MinValue, float.MinValue, float.MinValue, int.MinValue, int.MinValue, int.MinValue, float.MinValue, int.MinValue,
             int.MinValue, int.MinValue, int.MinValue, int.MinValue);

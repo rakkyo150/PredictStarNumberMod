@@ -3,7 +3,7 @@ using IPA;
 using IPA.Config;
 using IPA.Config.Stores;
 using PredictStarNumberMod.Installers;
-using PredictStarNumberMod.Patches;
+using PredictStarNumberMod.HarmonyPatches;
 using SiraUtil.Zenject;
 using System;
 using System.Reflection;
