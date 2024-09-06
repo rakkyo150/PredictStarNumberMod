@@ -67,7 +67,7 @@ namespace PredictStarNumberMod.HarmonyPatches
             // データなし
             if (___fields[1].text == "?") return;
 
-            if (!PluginConfig.Instance.Parallel && IsRankedMap(___fields)) return;
+            if (!PluginConfig.Instance.DisplayValueInRankMap && IsRankedMap(___fields)) return;
 
             bool isRankedMap = IsRankedMap(___fields);
 
@@ -111,8 +111,10 @@ namespace PredictStarNumberMod.HarmonyPatches
 
             async Task<string> PredictStarNumber()
             {
+#if DEBUG
                 var sw = new System.Diagnostics.Stopwatch();
                 sw.Start();
+#endif
                 if (modelByte.Length == 1)
                 {
                     modelByte = await GetModel();
@@ -156,10 +158,9 @@ namespace PredictStarNumberMod.HarmonyPatches
                 {
 #if DEBUG
                     Plugin.Log.Info(string.Join(". ", results));
-#endif
-
                     sw.Stop();
                     Plugin.Log.Info(sw.Elapsed.ToString());
+#endif
                     return results.First().AsTensor<double>()[0].ToString("0.00");
                 }
             }
