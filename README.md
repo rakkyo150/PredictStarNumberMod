@@ -19,5 +19,5 @@ flowchart
     First(RankedMapData) -- Training Data --> Second(PredictStarNumberHelper)
     Second -- Learned Model --> Third(PredictStarNumber)
     Second -- Learned Model --> PredictStarNumberMod
-    Third <-- REST API --> PredictStarNumberExtension
+    Second -- Learned Model --> PredictStarNumberExtension
 ```
