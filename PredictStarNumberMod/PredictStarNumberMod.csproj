@@ -65,7 +65,7 @@
       <Private>False</Private>
       <SpecificVersion>False</SpecificVersion>
     </Reference>
-    <Reference Include="Microsoft.ML.OnnxRuntime">
+    <Reference Include="Microsoft.ML.OnnxRuntime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=f27f157f0a5b7bb6, processorArchitecture=MSIL">
       <HintPath>$(BeatSaberDir)\Libs\Microsoft.ML.OnnxRuntime.dll</HintPath>
       <Private>True</Private>
       <SpecificVersion>False</SpecificVersion>
