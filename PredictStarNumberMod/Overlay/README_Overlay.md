@@ -5,7 +5,9 @@
 以下の内容をコピーして、`https://github.com/rynan4818/beat-saber-overlay`に準拠したhtml内の`<div id="overlay" class="hidden">`より下の階層のどこかにペーストしてください。
 ```html
 <span id="predicted_star_group">
-    <span>（★</span><span id="predicted_star">0.0</span><span>）</span>
+    <span id="predicted_star_visibility">
+        <span>（★</span><span id="predicted_star">0.0</span><span>）</span>
+    </span>
 </span>
 ```
 以下の内容もコピーして、`https://github.com/rynan4818/beat-saber-overlay`に準拠したhtml内の`<script src="./js/options.js"></script>`の上にペーストしてください。
@@ -17,5 +19,6 @@
 
 ## コピー内容の意味
 URLパラメータを追加しない場合の非表示の範囲は`<span id="predicted_star_group">`より下の階層です。  
+`<span id="predicted_star_visibility">`は、星予測値を表示すべきでない場合に、星予測値の表示非表示をプログラムが自動で切り替えるために必要なタグです。  
 星予測値は`<span id="predicted_star">0.0</span>`の`0.0`の部分を書き換える処理になっています。  
-以上を踏まえて、好みに応じて変更していただくことも可能です。
+基本的には変更をしないのをおすすめしますが、以上を踏まえて、好みに応じて変更していただくことも可能です。
