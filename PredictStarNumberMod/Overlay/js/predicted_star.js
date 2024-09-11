@@ -1,4 +1,7 @@
-﻿let predicted_star = null;
+﻿const skip_star = -1;
+
+let predicted_star = null;
+let predicted_star_visibility = null;
 
 ex_hello.push((data) => {
 	predicted_star = document.getElementById("predicted_star");
@@ -14,11 +17,40 @@ ex_hello.push((data) => {
 });
 
 ex_other.push((data) => {
-	if (typeof data.other === "undefined") return;
+	if (typeof data.other === "undefined") {
+		hidePredictedStarVisibility();
+		return;
+	}
 
-	if (typeof data.other.PredictedStar === "undefined") return;
+	if (typeof data.other.PredictedStar === "undefined") {
+		hidePredictedStarVisibility();
+		return;
+	}
 
 	if (predicted_star == null) return;
 
+	if (data.other.PredictedStar == skip_star) {
+		hidePredictedStarVisibility();
+		return;
+	}
+
+	checkPredictedStarVisible();
+
 	predicted_star.innerText = data.other.PredictedStar.toFixed(2);
 });
+
+function hidePredictedStarVisibility() {
+	if (predicted_star_visibility == null) predicted_star_visibility = document.getElementById("predicted_star_visibility");
+
+	if (predicted_star_visibility != null) predicted_star_visibility.style.visibility = "hidden";
+	else predicted_star.style.visibility == "hidden"
+}
+
+function checkPredictedStarVisible() {
+	if (predicted_star.style.visibility == "hidden") predicted_star.style.visibility = "visible";
+
+	if (predicted_star_visibility == null) predicted_star_visibility = document.getElementById("predicted_star_visibility");
+	if (predicted_star_visibility == null) return;
+
+	if (predicted_star_visibility.style.visibility == "hidden") predicted_star_visibility.style.visibility = "visible";
+}

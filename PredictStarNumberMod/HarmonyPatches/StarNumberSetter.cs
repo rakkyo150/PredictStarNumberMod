@@ -34,7 +34,8 @@ namespace PredictStarNumberMod.Patches
 
         private static float originalFontSize = float.MinValue;
 
-        private static double errorStarNumber = -1.0;
+        private static double skipStarNumber = -1.0;
+        private static double errorStarNumber = double.MinValue;
 
         public class LatestRelease
         {
@@ -72,7 +73,12 @@ namespace PredictStarNumberMod.Patches
             if (!PluginConfig.Instance.Enable) return;
 
             // データなし
-            if (___fields[1].text == "?") return;
+            if (___fields[1].text == "?")
+            {
+                predictedStarNumber = skipStarNumber;
+                ChangedPredictedStarNumber?.Invoke();
+                return;
+            }
 
             if (!PluginConfig.Instance.DisplayValueInRankMap && IsRankedMap(___fields)) return;
 
