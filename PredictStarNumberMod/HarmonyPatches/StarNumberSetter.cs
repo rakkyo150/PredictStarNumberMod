@@ -16,6 +16,8 @@ namespace PredictStarNumberMod.Patches
 {
     public class StarNumberSetter
     {
+        internal static double predictedStarNumber = double.MinValue;
+
         internal static string mapHash = string.Empty;
         internal static BeatmapDifficulty difficulty = BeatmapDifficulty.Easy;
         internal static int difficultyRank = int.MinValue;
@@ -24,11 +26,15 @@ namespace PredictStarNumberMod.Patches
             int.MinValue, float.MinValue, float.MinValue, int.MinValue, int.MinValue, int.MinValue, float.MinValue, int.MinValue,
             int.MinValue, int.MinValue, int.MinValue, int.MinValue);
 
+        internal static Action ChangedPredictedStarNumber;
+
         private static string modelAssetEndpoint = "https://api.github.com/repos/rakkyo150/PredictStarNumberHelper/releases/latest";
         private static byte[] modelByte = new byte[] { 0 };
         private static InferenceSession session = null;
 
         private static float originalFontSize = float.MinValue;
+
+        private static double errorStarNumber = -1.0;
 
         public class LatestRelease
         {
@@ -88,18 +94,25 @@ namespace PredictStarNumberMod.Patches
             {
                 try
                 {
-                    string predictedStarNumber = await PredictStarNumber();// ランク
+                    predictedStarNumber = await PredictStarNumber(); // ランク
+                    ChangedPredictedStarNumber?.Invoke();
+                    
+                    string predictedStarNumberString = predictedStarNumber.ToString("0.00");
+#if DEBUG
+                    Plugin.Log.Info(predictedStarNumberString);
+#endif
                     if (isRankedMap)
                     {
-                        SetPredictedStarNumberForRankedMap(fields, predictedStarNumber);
+                        SetPredictedStarNumberForRankedMap(fields, predictedStarNumberString);
                         return;
                     }
 
-                    fields[1].text = $"({predictedStarNumber})";
+                    fields[1].text = $"({predictedStarNumberString})";
                 }
                 catch (Exception ex)
                 {
                     Plugin.Log.Error(ex);
+                    predictedStarNumber = errorStarNumber;
                     if (isRankedMap)
                     {
                         SetPredictedStarNumberForRankedMap(fields, "Error");
@@ -110,7 +123,7 @@ namespace PredictStarNumberMod.Patches
                 }
             }
 
-            async Task<string> PredictStarNumber()
+            async Task<double> PredictStarNumber()
             {
 #if DEBUG
                 var sw = new System.Diagnostics.Stopwatch();
@@ -162,7 +175,7 @@ namespace PredictStarNumberMod.Patches
                     sw.Stop();
                     Plugin.Log.Info(sw.Elapsed.ToString());
 #endif
-                    return results.First().AsTensor<double>()[0].ToString("0.00");
+                    return results.First().AsTensor<double>()[0];
                 }
             }
 
