@@ -65,6 +65,11 @@
       <Private>False</Private>
       <SpecificVersion>False</SpecificVersion>
     </Reference>
+    <Reference Include="HttpSiraStatus">
+      <HintPath>$(BeatSaberDir)\Plugins\HttpSiraStatus.dll</HintPath>
+      <Private>False</Private>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
     <Reference Include="Microsoft.CSharp">
       <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\Microsoft.CSharp.dll</HintPath>
       <Private>False</Private>
@@ -158,9 +163,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Overlay\HttpStatus.cs" />
+    <Compile Include="Installers\AppInstaller.cs" />
     <Compile Include="Installers\MenuInstaller.cs" />
     <Compile Include="HarmonyPatches\StarNumberSetter.cs" />
     <Compile Include="HarmonyPatches\MapDataGetter.cs" />
+    <None Include="Overlay\LICENSE_for_sample">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Compile Include="Plugin.cs" />
     <Compile Include="Configuration\PluginConfig.cs" />
     <Compile Include="Views\SettingViewController.cs" />
@@ -170,7 +180,16 @@
     <EmbeddedResource Include="manifest.json" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Overlay\modifiers\predicted_star.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Directory.Build.props" Condition="Exists('Directory.Build.props')" />
+    <None Include="Overlay\js\predicted_star.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Overlay\README_Overlay.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="PredictStarNumberMod.csproj.user" Condition="Exists('PredictStarNumberMod.csproj.user')" />
     <EmbeddedResource Include="Views\SettingViewController.bsml">
       <DependentUpon>SettingViewController.cs</DependentUpon>
@@ -182,6 +201,11 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Overlay\sample.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
