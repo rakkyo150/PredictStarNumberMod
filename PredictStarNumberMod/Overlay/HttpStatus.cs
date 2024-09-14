@@ -3,6 +3,7 @@ using HttpSiraStatus.Interfaces;
 using PredictStarNumberMod.HarmonyPatches;
 using System;
 using Zenject;
+using PluginConfig = PredictStarNumberMod.Configuration.PluginConfig;
 
 namespace PredictStarNumberMod.Overlay
 {
@@ -10,6 +11,8 @@ namespace PredictStarNumberMod.Overlay
     {
         private bool _disposedValue;
         private readonly IStatusManager _statusManager;
+
+        private OverlayStatus overlayStatus;
 
         public HttpStatus(IStatusManager statusManager)
         {
@@ -20,9 +23,24 @@ namespace PredictStarNumberMod.Overlay
         {
 #if Debug
             Plugin.Log.Info("PredictedStarNumber changed");
-#endif
+#endif      
+            if (!PluginConfig.Instance.Overlay)
+            {
+                if (this.overlayStatus == OverlayStatus.Hide) return;
+
+                _statusManager.OtherJSON["PredictedStar"] = StarNumberSetter.skipStarNumber;
+                _statusManager.EmitStatusUpdate(ChangedProperty.Other, BeatSaberEvent.Other);
+
+                this.overlayStatus = OverlayStatus.Hide;
+                return;
+            }
+            
             _statusManager.OtherJSON["PredictedStar"] = StarNumberSetter.PredictedStarNumber;
             _statusManager.EmitStatusUpdate(ChangedProperty.Other, BeatSaberEvent.Other);
+
+            if (StarNumberSetter.PredictedStarNumber == StarNumberSetter.skipStarNumber)
+                this.overlayStatus = OverlayStatus.Hide;
+            else this.overlayStatus = OverlayStatus.Visible;
         }
 
         public void Initialize()
@@ -47,6 +65,12 @@ namespace PredictStarNumberMod.Overlay
             // このコードを変更しないでください。クリーンアップ コードを 'Dispose(bool disposing)' メソッドに記述します
             this.Dispose(disposing: true);
             GC.SuppressFinalize(this);
+        }
+
+        public enum OverlayStatus
+        {
+            Visible,
+            Hide
         }
     }
 }
