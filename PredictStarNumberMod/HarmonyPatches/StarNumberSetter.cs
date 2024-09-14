@@ -34,7 +34,7 @@ namespace PredictStarNumberMod.HarmonyPatches
         private static float originalFontSize = float.MinValue;
 
         private static double skipStarNumber = -1.0;
-        private static double errorStarNumber = double.MinValue;
+        private static double errorStarNumber = -10.0;
 
         public class LatestRelease
         {

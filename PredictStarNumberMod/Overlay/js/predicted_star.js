@@ -1,4 +1,5 @@
 ﻿const skip_star = -1;
+const error_star = -10
 
 let predicted_star = null;
 let predicted_star_visibility = null;
@@ -35,6 +36,10 @@ ex_other.push((data) => {
 	}
 
 	checkPredictedStarVisible();
+
+	if (data.other.PredictedStar == error_star) {
+		predicted_star.innerText = "?";
+	}
 
 	predicted_star.innerText = data.other.PredictedStar.toFixed(2);
 });
