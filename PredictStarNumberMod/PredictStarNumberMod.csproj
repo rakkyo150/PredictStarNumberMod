@@ -161,6 +161,7 @@
     <None Include="LICENSE_FOR_RELEASE">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <Compile Include="HarmonyPatches\LevelStatsViewPatch.cs" />
     <Compile Include="Overlay\HttpStatus.cs" />
     <Compile Include="Installers\AppInstaller.cs" />
     <Compile Include="Installers\MenuInstaller.cs" />
