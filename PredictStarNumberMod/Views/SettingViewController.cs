@@ -27,7 +27,7 @@ namespace PredictStarNumberMod
             }
         }
 
-        public bool Parallel
+        public bool DisplayValueInRankMap
         {
             get { return PluginConfig.Instance.DisplayValueInRankMap; }
             set
