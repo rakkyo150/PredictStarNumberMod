@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 /// <summary>
 /// See https://github.com/pardeike/Harmony/wiki for a full reference on Harmony.
 /// </summary>
-namespace PredictStarNumberMod.Patches
+namespace PredictStarNumberMod.HarmonyPatches
 {
     /// <summary>
     /// This patches ClassToPatch.MethodToPatch(Parameter1Type arg1, Parameter2Type arg2)
@@ -112,7 +112,7 @@ namespace PredictStarNumberMod.Patches
             public int resets { get; set; }
         }
 
-        internal static async Task<MapData> GetMapData(string hash, BeatmapDifficulty beatmapDifficulty, string characteristic)
+        internal static async Task<MapData> GetMapData(string hash, BeatmapDifficulty beatmapDifficulty, BeatmapCharacteristicSO characteristic)
         {
             string endpoint = $"https://api.beatsaver.com/maps/hash/{hash}";
 
@@ -144,7 +144,7 @@ namespace PredictStarNumberMod.Patches
             foreach (Difficulty eachDifficulty in difficulties)
             {
                 if (eachDifficulty.difficulty != beatmapDifficulty.ToString()
-                    || eachDifficulty.characteristic != characteristic)
+                    || eachDifficulty.characteristic != characteristic.serializedName)
                 {
                     continue;
                 }
@@ -169,7 +169,6 @@ namespace PredictStarNumberMod.Patches
                 bombs = eachDifficulty.bombs;
                 obstacles = eachDifficulty.obstacles;
                 nps = eachDifficulty.nps;
-                characteristic = eachDifficulty.characteristic;
                 events = eachDifficulty.events;
                 chroma = eachDifficulty.chroma ? 1 : 0;
                 errors = eachDifficulty.paritySummary.errors;
@@ -191,26 +190,30 @@ namespace PredictStarNumberMod.Patches
         ///     added three _ to the beginning to reference it in the patch. Adding ref means we can change it.</param>
         // PrefixではIDifficultyBeatmapはNullなのでここで取得しないと無理
         [HarmonyBefore(new string[] { "Kinsi55.BeatSaber.BetterSongList" })] // If another mod patches this method, apply this patch after the other mod's.
-        static void Postfix(IDifficultyBeatmap ____selectedDifficultyBeatmap)
+        static void Postfix(StandardLevelDetailView __instance, BeatmapLevel ____beatmapLevel)
         {
             if (!PluginConfig.Instance.Enable) return;
 
-            string mapHash = GetHashOfPreview(____selectedDifficultyBeatmap.level);
-            StarNumberSetter.mapHash = mapHash;
-            StarNumberSetter.difficulty = ____selectedDifficultyBeatmap.difficulty;
-            StarNumberSetter.difficultyRank = ____selectedDifficultyBeatmap.difficultyRank;
-            StarNumberSetter.characteristic = ____selectedDifficultyBeatmap.parentDifficultyBeatmapSet.beatmapCharacteristic.serializedName;
+            string mapHash = GetHashOfLevel(____beatmapLevel);
+            StarNumberSetter.MapHash = mapHash;
+            StarNumberSetter.Difficulty = __instance.beatmapKey.difficulty;
+            StarNumberSetter.Characteristic = __instance.beatmapKey.beatmapCharacteristic;
 
             // From BetterSongList.Util.BeatmapsUtil
-            string GetHashOfPreview(IPreviewBeatmapLevel preview)
+            string GetHashOfLevel(BeatmapLevel level)
             {
-                if (preview.levelID.Length < 53)
+                return level == null ? null : GetHashOfLevelId(level.levelID);
+            }
+
+            string GetHashOfLevelId(string id)
+            {
+                if (id.Length < 53)
                     return null;
 
-                if (preview.levelID[12] != '_') // custom_level_<hash, 40 chars>
+                if (id[12] != '_') // custom_level_<hash, 40 chars>
                     return null;
 
-                return preview.levelID.Substring(13, 40);
+                return id.Substring(13, 40);
             }
         }
     }

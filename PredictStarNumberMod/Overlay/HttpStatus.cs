@@ -21,7 +21,7 @@ namespace PredictStarNumberMod.Overlay
 #if Debug
             Plugin.Log.Info("PredictedStarNumber changed");
 #endif
-            _statusManager.OtherJSON["PredictedStar"] = StarNumberSetter.predictedStarNumber;
+            _statusManager.OtherJSON["PredictedStar"] = StarNumberSetter.PredictedStarNumber;
             _statusManager.EmitStatusUpdate(ChangedProperty.Other, BeatSaberEvent.Other);
         }
 

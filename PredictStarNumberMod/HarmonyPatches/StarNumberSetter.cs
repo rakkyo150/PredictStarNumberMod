@@ -12,21 +12,20 @@ using TMPro;
 /// <summary>
 /// See https://github.com/pardeike/Harmony/wiki for a full reference on Harmony.
 /// </summary>
-namespace PredictStarNumberMod.Patches
+namespace PredictStarNumberMod.HarmonyPatches
 {
     public class StarNumberSetter
     {
-        internal static double predictedStarNumber = double.MinValue;
+        public static double PredictedStarNumber { get; set; } = double.MinValue;
 
-        internal static string mapHash = string.Empty;
-        internal static BeatmapDifficulty difficulty = BeatmapDifficulty.Easy;
-        internal static int difficultyRank = int.MinValue;
-        internal static string characteristic = string.Empty;
-        internal static MapDataGetter.MapData mapData = new MapDataGetter.MapData(float.MinValue, float.MinValue, int.MinValue,
+        internal static string MapHash { get; set; } = string.Empty;
+        internal static BeatmapDifficulty Difficulty { get; set; } = BeatmapDifficulty.Easy;
+        internal static BeatmapCharacteristicSO Characteristic { get; set; } = null;
+        internal static MapDataGetter.MapData MapData { get; set; } = new MapDataGetter.MapData(float.MinValue, float.MinValue, int.MinValue,
             int.MinValue, float.MinValue, float.MinValue, int.MinValue, int.MinValue, int.MinValue, float.MinValue, int.MinValue,
             int.MinValue, int.MinValue, int.MinValue, int.MinValue);
 
-        internal static Action ChangedPredictedStarNumber;
+        public static Action ChangedPredictedStarNumber;
 
         private static string modelAssetEndpoint = "https://api.github.com/repos/rakkyo150/PredictStarNumberHelper/releases/latest";
         private static byte[] modelByte = new byte[] { 0 };
@@ -75,8 +74,7 @@ namespace PredictStarNumberMod.Patches
             // データなし
             if (___fields[1].text == "?")
             {
-                predictedStarNumber = skipStarNumber;
-                ChangedPredictedStarNumber?.Invoke();
+                ChangePredictedStarNumber(skipStarNumber);
                 return;
             }
 
@@ -100,10 +98,9 @@ namespace PredictStarNumberMod.Patches
             {
                 try
                 {
-                    predictedStarNumber = await PredictStarNumber(); // ランク
-                    ChangedPredictedStarNumber?.Invoke();
+                    ChangePredictedStarNumber(await PredictStarNumber());
                     
-                    string predictedStarNumberString = predictedStarNumber.ToString("0.00");
+                    string predictedStarNumberString = PredictedStarNumber.ToString("0.00");
 #if DEBUG
                     Plugin.Log.Info(predictedStarNumberString);
 #endif
@@ -118,7 +115,7 @@ namespace PredictStarNumberMod.Patches
                 catch (Exception ex)
                 {
                     Plugin.Log.Error(ex);
-                    predictedStarNumber = errorStarNumber;
+                    ChangePredictedStarNumber(errorStarNumber);
                     if (isRankedMap)
                     {
                         SetPredictedStarNumberForRankedMap(fields, "Error");
@@ -140,7 +137,7 @@ namespace PredictStarNumberMod.Patches
                     modelByte = await GetModel();
                 }
 
-                StarNumberSetter.mapData = await MapDataGetter.GetMapData(mapHash, difficulty, characteristic);
+                StarNumberSetter.MapData = await MapDataGetter.GetMapData(MapHash, Difficulty, Characteristic);
                 if (session == null)
                 {
                     session = new InferenceSession(modelByte);
@@ -148,21 +145,21 @@ namespace PredictStarNumberMod.Patches
                 string inputNoneName = session?.InputMetadata.First().Key;
                 double[] data = new double[15]
                 {
-                    mapData.Bpm,
-                    mapData.Duration,
-                    mapData.Difficulty,
-                    mapData.SageScore,
-                    mapData.Njs,
-                    mapData.Offset,
-                    mapData.Notes,
-                    mapData.Bombs,
-                    mapData.Obstacles,
-                    mapData.Nps,
-                    mapData.Events,
-                    mapData.Chroma,
-                    mapData.Errors,
-                    mapData.Warns,
-                    mapData.Resets
+                    MapData.Bpm,
+                    MapData.Duration,
+                    MapData.Difficulty,
+                    MapData.SageScore,
+                    MapData.Njs,
+                    MapData.Offset,
+                    MapData.Notes,
+                    MapData.Bombs,
+                    MapData.Obstacles,
+                    MapData.Nps,
+                    MapData.Events,
+                    MapData.Chroma,
+                    MapData.Errors,
+                    MapData.Warns,
+                    MapData.Resets
                 };
 #if DEBUG
                 var innodedims = session?.InputMetadata.First().Value.Dimensions;
@@ -204,6 +201,12 @@ namespace PredictStarNumberMod.Patches
                 request.Dispose();
                 return await modelResponse.Content.ReadAsByteArrayAsync();
             }
+        }
+
+        private static void ChangePredictedStarNumber(double newPredictedStarNumber)
+        {
+            PredictedStarNumber = newPredictedStarNumber;
+            ChangedPredictedStarNumber?.Invoke();
         }
 
         private static void SetPredictedStarNumberForRankedMap(TextMeshProUGUI[] fields, string predictedStarNumber)
