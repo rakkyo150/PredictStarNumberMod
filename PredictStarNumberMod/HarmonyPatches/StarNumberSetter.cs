@@ -25,8 +25,8 @@ namespace PredictStarNumberMod.HarmonyPatches
             int.MinValue, float.MinValue, float.MinValue, int.MinValue, int.MinValue, int.MinValue, float.MinValue, int.MinValue,
             int.MinValue, int.MinValue, int.MinValue, int.MinValue);
 
-        internal static double skipStarNumber = -1.0;
-        internal static double errorStarNumber = -10.0;
+        internal static double skipStarNumber { get; } = -1.0;
+        internal static double errorStarNumber { get; } = -10.0;
 
         public static Action ChangedPredictedStarNumber;
 
