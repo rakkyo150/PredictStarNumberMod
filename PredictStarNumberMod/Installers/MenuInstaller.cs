@@ -1,4 +1,5 @@
-﻿using Zenject;
+﻿using PredictStarNumberMod.PP;
+using Zenject;
 
 namespace PredictStarNumberMod.Installers
 {
@@ -7,6 +8,7 @@ namespace PredictStarNumberMod.Installers
         public override void InstallBindings()
         {
             Container.BindInterfacesAndSelfTo<SettingViewController>().FromNewComponentAsViewController().AsSingle();
+            Container.BindInterfacesAndSelfTo<PredictedStarNumberMonitor>().AsSingle();
         }
     }
 }

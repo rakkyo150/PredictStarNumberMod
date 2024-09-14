@@ -185,6 +185,7 @@
     <Compile Include="PP\CurveUtils.cs" />
     <Compile Include="PP\PPCalculatorData.cs" />
     <Compile Include="PP\CurveDownloader.cs" />
+    <Compile Include="PP\PredictedStarNumberMonitor.cs" />
     <Compile Include="Views\SettingViewController.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

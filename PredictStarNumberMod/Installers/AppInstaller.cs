@@ -9,7 +9,7 @@ namespace PredictStarNumberMod.Installers
     {
         public override void InstallBindings()
         {
-            Container.BindInterfacesAndSelfTo<CurveDownloader>().AsSingle().NonLazy();
+            Container.BindInterfacesAndSelfTo<CurveDownloader>().AsSingle();
 
             // すべてのModのEnable後に実行されるっぽいので、よほどのことが無ければこれで依存関係問題ないはず
             if (PluginManager.GetPlugin("HttpSiraStatus") == null) return;
