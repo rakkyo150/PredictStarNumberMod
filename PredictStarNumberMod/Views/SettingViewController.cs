@@ -20,10 +20,11 @@ namespace PredictStarNumberMod
             {
                 if (PluginConfig.Instance.Enable == value) return;
                 PluginConfig.Instance.Enable = value;
-#if DEBUG
-                Plugin.Log.Info("Enable");
-#endif
                 NotifyPropertyChanged();
+
+#if DEBUG
+                Plugin.Log.Info("Enable has been changed");
+#endif
             }
         }
 
@@ -34,10 +35,26 @@ namespace PredictStarNumberMod
             {
                 if (PluginConfig.Instance.DisplayValueInRankMap == value) return;
                 PluginConfig.Instance.DisplayValueInRankMap = value;
-#if DEBUG
-                Plugin.Log.Info("DisplayValueInRankMap Enable");
-#endif
                 NotifyPropertyChanged();
+
+#if DEBUG
+                Plugin.Log.Info("DisplayValueInRankMap has been Changed");
+#endif
+            }
+        }
+
+        public bool Overlay
+        {
+            get { return PluginConfig.Instance.Overlay; }
+            set
+            {
+                if (PluginConfig.Instance.Overlay == value) return;
+                PluginConfig.Instance.Overlay = value;
+                NotifyPropertyChanged();
+
+#if DEBUG
+                Plugin.Log.Info("Overlay has been Enable");
+#endif
             }
         }
 
