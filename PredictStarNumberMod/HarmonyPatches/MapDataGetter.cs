@@ -195,9 +195,9 @@ namespace PredictStarNumberMod.HarmonyPatches
             if (!PluginConfig.Instance.Enable) return;
 
             string mapHash = GetHashOfLevel(____beatmapLevel);
-            StarNumberSetter.mapHash = mapHash;
-            StarNumberSetter.difficulty = __instance.beatmapKey.difficulty;
-            StarNumberSetter.characteristic = __instance.beatmapKey.beatmapCharacteristic;
+            StarNumberSetter.MapHash = mapHash;
+            StarNumberSetter.Difficulty = __instance.beatmapKey.difficulty;
+            StarNumberSetter.Characteristic = __instance.beatmapKey.beatmapCharacteristic;
 
             // From BetterSongList.Util.BeatmapsUtil
             string GetHashOfLevel(BeatmapLevel level)
