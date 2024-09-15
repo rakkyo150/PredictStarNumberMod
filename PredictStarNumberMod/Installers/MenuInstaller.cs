@@ -1,4 +1,5 @@
-﻿using PredictStarNumberMod.PP;
+﻿using PredictStarNumberMod.HarmonyPatches;
+using PredictStarNumberMod.PP;
 using Zenject;
 
 namespace PredictStarNumberMod.Installers
@@ -9,6 +10,7 @@ namespace PredictStarNumberMod.Installers
         {
             Container.BindInterfacesAndSelfTo<SettingViewController>().FromNewComponentAsViewController().AsSingle();
             Container.BindInterfacesAndSelfTo<PredictedStarNumberMonitor>().AsSingle();
+            Container.BindInterfacesTo<LevelStatsViewPatch>().AsSingle();
         }
     }
 }
