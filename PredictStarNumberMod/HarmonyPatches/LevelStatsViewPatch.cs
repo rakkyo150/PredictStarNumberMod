@@ -42,6 +42,8 @@ namespace PredictStarNumberMod.HarmonyPatches
         [AffinityPrefix]
         protected void Prefix(ref TextMeshProUGUI ____highScoreText)
         {
+            // 前回実行時に譜面データはあるがプレイヤーのクリアデータがない場合、trueになったままなので
+            _predictedStarNumberMonitor.PredictedStarNumberChanged = false;
             RectTransform rectTransform = ____highScoreText.GetComponent<RectTransform>();
             if (rectTransform.anchoredPosition == modifiedAnchordPostion)
                 rectTransform.anchoredPosition = originalAnchoredPosition;
