@@ -4,8 +4,10 @@ using Zenject;
 
 namespace PredictStarNumberMod.PP
 {
-    internal class PredictedStarNumberMonitor : IInitializable, IDisposable
+    public class PredictedStarNumberMonitor : IInitializable, IDisposable
     {
+        public bool PredictedStarNumberChanged { get; set; } = false;
+
         private bool _disposedValue;
 
         public void Initialize()
@@ -15,7 +17,7 @@ namespace PredictStarNumberMod.PP
 
         private void OnChangedPredictedStarNumber()
         {
-            LevelStatsViewPatch.PredictedStarNumberChanged = true;
+            this.PredictedStarNumberChanged = true;
         }
 
         protected virtual void Dispose(bool disposing)

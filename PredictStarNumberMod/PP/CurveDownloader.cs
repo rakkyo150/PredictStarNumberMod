@@ -9,8 +9,11 @@ using static PredictStarNumberMod.PP.PPCalculatorData;
 
 namespace PredictStarNumberMod.PP
 {
-    internal class CurveDownloader: IInitializable
+    public class CurveDownloader: IInitializable
     {
+        public bool CurvesDownloadFinished { get; private set; } = false;
+        public Curves Curves { get; private set; } = null;
+
         private const string URI_PREFIX = "https://cdn.pulselane.dev/";
         private const string CURVE_FILE_NAME = "curves.json";
 
@@ -32,7 +35,7 @@ namespace PredictStarNumberMod.PP
         {
             try
             {
-                LevelStatsViewPatch.CurvesDownloadFinished = false;
+                this.CurvesDownloadFinished = false;
                 GetCurves();
             }
             catch (Exception)
@@ -45,8 +48,8 @@ namespace PredictStarNumberMod.PP
         {
             string uri = URI_PREFIX + CURVE_FILE_NAME;
             Curves result = await this.MakeWebRequest<Curves>(uri);
-            LevelStatsViewPatch.Curves = result;
-            LevelStatsViewPatch.CurvesDownloadFinished = true;
+            this.Curves = result;
+            this.CurvesDownloadFinished = true;
         }
 
         private async Task<T> MakeWebRequest<T>(string uri)
