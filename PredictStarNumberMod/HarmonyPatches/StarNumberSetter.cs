@@ -1,11 +1,16 @@
-﻿using Microsoft.ML.OnnxRuntime;
+﻿using BetterSongList.HarmonyPatches.UI;
+using HarmonyLib;
+using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Newtonsoft.Json;
 using PredictStarNumberMod.Configuration;
+using PredictStarNumberMod.Map;
+using SiraUtil.Affinity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 using TMPro;
 
@@ -14,16 +19,11 @@ using TMPro;
 /// </summary>
 namespace PredictStarNumberMod.HarmonyPatches
 {
-    public class StarNumberSetter
+    public class StarNumberSetter : IAffinity
     {
         public static double PredictedStarNumber { get; set; } = double.MinValue;
 
-        internal static string MapHash { get; set; } = string.Empty;
-        internal static BeatmapDifficulty Difficulty { get; set; } = BeatmapDifficulty.Easy;
-        internal static BeatmapCharacteristicSO Characteristic { get; set; } = null;
-        internal static MapDataGetter.MapData MapData { get; set; } = new MapDataGetter.MapData(float.MinValue, float.MinValue, int.MinValue,
-            int.MinValue, float.MinValue, float.MinValue, int.MinValue, int.MinValue, int.MinValue, float.MinValue, int.MinValue,
-            int.MinValue, int.MinValue, int.MinValue, int.MinValue);
+        private readonly MapDataContainer _mapDataContainer;
 
         internal static double skipStarNumber { get; } = -1.0;
         internal static double errorStarNumber { get; } = -10.0;
@@ -35,6 +35,11 @@ namespace PredictStarNumberMod.HarmonyPatches
         private static InferenceSession session = null;
 
         private static float originalFontSize = float.MinValue;
+
+        public StarNumberSetter(MapDataContainer mapDataContainer)
+        {
+            _mapDataContainer = mapDataContainer;
+        }
 
         public class LatestRelease
         {
@@ -53,8 +58,10 @@ namespace PredictStarNumberMod.HarmonyPatches
         /// <param name="arg1">The Parameter1Type arg1 that was passed to MethodToPatch</param>
         /// <param name="____privateFieldInClassToPatch">Reference to the private field in ClassToPatch named '_privateFieldInClassToPatch', 
         ///     added three _ to the beginning to reference it in the patch. Adding ref means we can change it.</param>
+        [AffinityPatch(typeof(ExtraLevelParams), nameof(ExtraLevelParams.Postfix))]
+        [AffinityPostfix]
         // Postfixにパッチをあてているせいでパッチ当てられるPostfixの引数は取得できない模様
-        static void Postfix(ref TextMeshProUGUI[] ___fields)
+        protected void Postfix(ref TextMeshProUGUI[] ___fields)
         {
             // IDifficultyBeatmap selectedDifficultyBeatmap = BS_Utils.Plugin.LevelData.GameplayCoreSceneSetupData.difficultyBeatmap;はNullになる
             // Resources.FindObjectsOfTypeAll<IDifficultyBeatmap>().FirstOrDefault();はUnityのObjectじゃないのでダメ
@@ -144,7 +151,7 @@ namespace PredictStarNumberMod.HarmonyPatches
                     modelByte = await GetModel();
                 }
 
-                StarNumberSetter.MapData = await MapDataGetter.GetMapData(MapHash, Difficulty, Characteristic);
+                _mapDataContainer.Data = await _mapDataContainer.GetMapData(_mapDataContainer.MapHash, _mapDataContainer.BeatmapDifficulty, _mapDataContainer.Characteristic);
                 if (session == null)
                 {
                     session = new InferenceSession(modelByte);
@@ -152,21 +159,21 @@ namespace PredictStarNumberMod.HarmonyPatches
                 string inputNoneName = session?.InputMetadata.First().Key;
                 double[] data = new double[15]
                 {
-                    MapData.Bpm,
-                    MapData.Duration,
-                    MapData.Difficulty,
-                    MapData.SageScore,
-                    MapData.Njs,
-                    MapData.Offset,
-                    MapData.Notes,
-                    MapData.Bombs,
-                    MapData.Obstacles,
-                    MapData.Nps,
-                    MapData.Events,
-                    MapData.Chroma,
-                    MapData.Errors,
-                    MapData.Warns,
-                    MapData.Resets
+                    _mapDataContainer.Data.Bpm,
+                    _mapDataContainer.Data.Duration,
+                    _mapDataContainer.Data.Difficulty,
+                    _mapDataContainer.Data.SageScore,
+                    _mapDataContainer.Data.Njs,
+                    _mapDataContainer.Data.Offset,
+                    _mapDataContainer.Data.Notes,
+                    _mapDataContainer.Data.Bombs,
+                    _mapDataContainer.Data.Obstacles,
+                    _mapDataContainer.Data.Nps,
+                    _mapDataContainer.Data.Events,
+                    _mapDataContainer.Data.Chroma,
+                    _mapDataContainer.Data.Errors,
+                    _mapDataContainer.Data.Warns,
+                    _mapDataContainer.Data.Resets
                 };
 #if DEBUG
                 var innodedims = session?.InputMetadata.First().Value.Dimensions;
