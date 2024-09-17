@@ -11,6 +11,8 @@ namespace PredictStarNumberMod.Installers
             Container.BindInterfacesAndSelfTo<SettingViewController>().FromNewComponentAsViewController().AsSingle();
             Container.BindInterfacesAndSelfTo<PredictedStarNumberMonitor>().AsSingle();
             Container.BindInterfacesTo<LevelStatsViewPatch>().AsSingle();
+            Container.BindInterfacesTo<MapDataGetter>().AsSingle();
+            Container.BindInterfacesTo<StarNumberSetter>().AsSingle();
         }
     }
 }

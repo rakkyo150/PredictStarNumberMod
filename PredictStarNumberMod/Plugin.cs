@@ -8,6 +8,7 @@ using SiraUtil.Zenject;
 using System;
 using System.Reflection;
 using IPALogger = IPA.Logging.Logger;
+using SiraUtil.Affinity;
 
 namespace PredictStarNumberMod
 {
@@ -44,6 +45,7 @@ namespace PredictStarNumberMod
             injector.Install<MenuInstaller>(Location.Menu);
             injector.Install<AppInstaller>(Location.App);
             Plugin.Log?.Debug("Config loaded");
+            Plugin.Log.Info(nameof(StandardLevelDetailView.RefreshContent));
         }
         #endregion
 
@@ -96,6 +98,7 @@ namespace PredictStarNumberMod
                 // https://wikiwiki.jp/rimworld/Modding#oad391ac
 
                 //TypeByNameであれば、アクセス制限を無視してTypeを読み込むことが出来る。
+                /*
                 var type = AccessTools.TypeByName("BetterSongList.HarmonyPatches.UI.ExtraLevelParams");
                 if (type != null)
                 {
@@ -104,6 +107,7 @@ namespace PredictStarNumberMod
                     harmony.Patch(original, null, postfix, null);
                 }
                 Plugin.Log?.Debug("Applying Harmony patches.");
+                */
                 harmony.PatchAll(Assembly.GetExecutingAssembly());
             }
             catch (Exception ex)
