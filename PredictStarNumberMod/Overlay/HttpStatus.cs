@@ -11,12 +11,14 @@ namespace PredictStarNumberMod.Overlay
     {
         private bool _disposedValue;
         private readonly IStatusManager _statusManager;
+        private readonly Star.Star _star;
 
         private OverlayStatus overlayStatus;
 
-        public HttpStatus(IStatusManager statusManager)
+        public HttpStatus(IStatusManager statusManager, Star.Star star)
         {
             _statusManager = statusManager;
+            _star = star;
         }
 
         public void OnChangedPredictedStarNumber()
@@ -28,24 +30,24 @@ namespace PredictStarNumberMod.Overlay
             {
                 if (this.overlayStatus == OverlayStatus.Hide) return;
 
-                _statusManager.OtherJSON["PredictedStar"] = StarNumberSetter.skipStarNumber;
+                _statusManager.OtherJSON["PredictedStar"] = _star.SkipStarNumber;
                 _statusManager.EmitStatusUpdate(ChangedProperty.Other, BeatSaberEvent.Other);
 
                 this.overlayStatus = OverlayStatus.Hide;
                 return;
             }
             
-            _statusManager.OtherJSON["PredictedStar"] = StarNumberSetter.PredictedStarNumber;
+            _statusManager.OtherJSON["PredictedStar"] = _star.PredictedStarNumber;
             _statusManager.EmitStatusUpdate(ChangedProperty.Other, BeatSaberEvent.Other);
 
-            if (StarNumberSetter.PredictedStarNumber == StarNumberSetter.skipStarNumber)
+            if (_star.PredictedStarNumber == _star.SkipStarNumber)
                 this.overlayStatus = OverlayStatus.Hide;
             else this.overlayStatus = OverlayStatus.Visible;
         }
 
         public void Initialize()
         {
-            StarNumberSetter.ChangedPredictedStarNumber += OnChangedPredictedStarNumber;
+            _star.ChangedPredictedStarNumber += OnChangedPredictedStarNumber;
         }
 
         protected virtual void Dispose(bool disposing)
@@ -54,7 +56,7 @@ namespace PredictStarNumberMod.Overlay
             {
                 if (disposing)
                 {
-                    StarNumberSetter.ChangedPredictedStarNumber -= OnChangedPredictedStarNumber;
+                    _star.ChangedPredictedStarNumber -= OnChangedPredictedStarNumber;
                 }
                 this._disposedValue = true;
             }

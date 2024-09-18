@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using static PredictStarNumberMod.PP.PPCalculatorData;
+using static PredictStarNumberMod.PP.PPCalculator;
 
 /// <summary>
 /// See https://github.com/pardeike/Harmony/wiki for a full reference on Harmony.
@@ -18,10 +18,8 @@ namespace PredictStarNumberMod.HarmonyPatches
         private Vector2 originalAnchoredPosition = new Vector2((float)12.00, (float)-3.80);
         private Vector2 modifiedAnchordPostion = new Vector2((float)12.00, (float)-5.30);
 
-        private List<Point> _curve;
-        private double[] _slopes;
-        private double _multiplier = 1;
-
+        private readonly PPCalculator _pPCalculator;
+        private readonly Star.Star _star;
         private readonly PredictedStarNumberMonitor _predictedStarNumberMonitor;
         private readonly CurveDownloader _curveDownloader;
         private readonly BeatmapLevelLoader _beatmapLevelLoader;
@@ -29,8 +27,10 @@ namespace PredictStarNumberMod.HarmonyPatches
         private readonly BeatmapLevelsEntitlementModel _beatmapLevelsEntitlementModel;
         private readonly BeatmapDataLoader _beatmapDataLoader = new BeatmapDataLoader();
 
-        public LevelStatsViewPatch(PredictedStarNumberMonitor predictedStarNumberMonitor, CurveDownloader curveDownloader, BeatmapLevelLoader beatmapLevelLoader, StandardLevelDetailViewController standardLevelDetailViewController, BeatmapLevelsEntitlementModel beatmapLevelsEntitlementModel)
+        public LevelStatsViewPatch(PPCalculator pPCalculator, Star.Star star, PredictedStarNumberMonitor predictedStarNumberMonitor, CurveDownloader curveDownloader, BeatmapLevelLoader beatmapLevelLoader, StandardLevelDetailViewController standardLevelDetailViewController, BeatmapLevelsEntitlementModel beatmapLevelsEntitlementModel)
         {
+            _pPCalculator = pPCalculator;
+            _star = star;
             _predictedStarNumberMonitor = predictedStarNumberMonitor;
             _curveDownloader = curveDownloader;
             _beatmapLevelLoader = beatmapLevelLoader;
@@ -79,8 +79,8 @@ namespace PredictStarNumberMod.HarmonyPatches
                 // 短い間隔でマップを変更した場合、最終実行時の結果を残すため
                 field.text = field.text.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)[0];
                 
-                if (StarNumberSetter.PredictedStarNumber == StarNumberSetter.skipStarNumber
-                    || StarNumberSetter.PredictedStarNumber == StarNumberSetter.errorStarNumber)
+                if (_star.PredictedStarNumber == _star.SkipStarNumber
+                    || _star.PredictedStarNumber == _star.ErrorStarNumber)
                     return;
 
                 field.text += "\n(" + predictedPP.ToString("0.00") + "PP)";
@@ -119,13 +119,13 @@ namespace PredictStarNumberMod.HarmonyPatches
 
         private void SetCurve(Curves curves)
         {
-            _curve = curves.ScoreSaber.standardCurve;
-            _slopes = CurveUtils.GetSlopes(_curve);
+            _pPCalculator.Curve = curves.ScoreSaber.standardCurve;
+            _pPCalculator.Slopes = _pPCalculator.GetSlopes();
         }
 
         public async Task<double> CalculatePP(double accuracy, bool failed = false)
         {
-            if (_curve == null || _slopes == null)
+            if (_pPCalculator.Curve == null || _pPCalculator.Slopes == null)
             {
                 while (!_curveDownloader.CurvesDownloadFinished)
                 {
@@ -141,15 +141,15 @@ namespace PredictStarNumberMod.HarmonyPatches
             }
             _predictedStarNumberMonitor.PredictedStarNumberChanged = false;
 
-            double rawPP = StarNumberSetter.PredictedStarNumber * PPCalculatorData.DefaultStarMultipllier;
+            double rawPP = _star.PredictedStarNumber * _pPCalculator.DefaultStarMultipllier;
 
-            double multiplier = _multiplier;
+            double multiplier = _pPCalculator.Multiplier;
             if (failed)
             {
                 multiplier -= 0.5f;
             }
 
-            return rawPP * CurveUtils.GetCurveMultiplier(_curve, _slopes, accuracy * multiplier);
+            return rawPP * _pPCalculator.GetCurveMultiplier(accuracy * multiplier);
         }
     }
 }

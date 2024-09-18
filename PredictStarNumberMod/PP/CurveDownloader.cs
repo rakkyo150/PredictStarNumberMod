@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using Zenject;
-using static PredictStarNumberMod.PP.PPCalculatorData;
+using static PredictStarNumberMod.PP.PPCalculator;
 
 namespace PredictStarNumberMod.PP
 {
