@@ -1,12 +1,10 @@
 ﻿using PredictStarNumberMod.PP;
 using SiraUtil.Affinity;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using static PredictStarNumberMod.PP.PPCalculator;
 
 /// <summary>
 /// See https://github.com/pardeike/Harmony/wiki for a full reference on Harmony.
@@ -17,11 +15,11 @@ namespace PredictStarNumberMod.HarmonyPatches
     {
         private Vector2 originalAnchoredPosition = new Vector2((float)12.00, (float)-3.80);
         private Vector2 modifiedAnchordPostion = new Vector2((float)12.00, (float)-5.30);
+        private double neverClearPercentage = 0;
 
         private readonly PPCalculator _pPCalculator;
         private readonly Star.Star _star;
         private readonly PredictedStarNumberMonitor _predictedStarNumberMonitor;
-        private readonly CurveDownloader _curveDownloader;
         private readonly BeatmapLevelLoader _beatmapLevelLoader;
         private readonly StandardLevelDetailViewController _standardLevelDetailViewController;
         private readonly BeatmapLevelsEntitlementModel _beatmapLevelsEntitlementModel;
@@ -32,7 +30,6 @@ namespace PredictStarNumberMod.HarmonyPatches
             _pPCalculator = pPCalculator;
             _star = star;
             _predictedStarNumberMonitor = predictedStarNumberMonitor;
-            _curveDownloader = curveDownloader;
             _beatmapLevelLoader = beatmapLevelLoader;
             _standardLevelDetailViewController = standardLevelDetailViewController;
             _beatmapLevelsEntitlementModel = beatmapLevelsEntitlementModel;
@@ -43,7 +40,7 @@ namespace PredictStarNumberMod.HarmonyPatches
         protected void Prefix(ref TextMeshProUGUI ____highScoreText)
         {
             // 前回実行時に譜面データはあるがプレイヤーのクリアデータがない場合、trueになったままなので
-            _predictedStarNumberMonitor.PredictedStarNumberChanged = false;
+            _predictedStarNumberMonitor.ClearPredictedStarNumberChanged();
             RectTransform rectTransform = ____highScoreText.GetComponent<RectTransform>();
             if (rectTransform.anchoredPosition == modifiedAnchordPostion)
                 rectTransform.anchoredPosition = originalAnchoredPosition;
@@ -67,13 +64,22 @@ namespace PredictStarNumberMod.HarmonyPatches
         private async Task wrapper(TextMeshProUGUI field,BeatmapKey beatmapKey, PlayerData playerData)
         {
             double percentage = await GetPercentage(beatmapKey, playerData);
-            if(percentage == 0) return;
+            if (percentage == neverClearPercentage)
+            {
+                _pPCalculator.PredictedPP = _pPCalculator.NoPredictedPP;
+                return;
+            }
 
             try
             {
-                double predictedPP = await CalculatePP(percentage);
+                while (!_predictedStarNumberMonitor.PredictedStarNumberChanged)
+                {
+                    await Task.Delay(200);
+                }
+
+                _pPCalculator.PredictedPP = await _pPCalculator.CalculatePP(percentage);
 #if DEBUG
-                Plugin.Log.Info(predictedPP.ToString());
+                Plugin.Log.Info(_pPCalculator.PredictedPP.ToString());
 #endif
                 RectTransform rectTransform = field.GetComponent<RectTransform>();
                 // 短い間隔でマップを変更した場合、最終実行時の結果を残すため
@@ -83,7 +89,7 @@ namespace PredictStarNumberMod.HarmonyPatches
                     || _star.PredictedStarNumber == _star.ErrorStarNumber)
                     return;
 
-                field.text += "\n(" + predictedPP.ToString("0.00") + "PP)";
+                field.text += "\n(" + _pPCalculator.PredictedPP.ToString("0.00") + "PP)";
                 if (rectTransform.anchoredPosition == originalAnchoredPosition)
                     rectTransform.anchoredPosition = modifiedAnchordPostion;
                 Plugin.Log.Info(field.text);
@@ -96,13 +102,13 @@ namespace PredictStarNumberMod.HarmonyPatches
 
         private async Task<double> GetPercentage(BeatmapKey beatmapKey, PlayerData playerData)
         {
-            if (playerData == null) return 0;
+            if (playerData == null) return neverClearPercentage;
 
             PlayerLevelStatsData playerLevelStatsData = playerData.TryGetPlayerLevelStatsData(in beatmapKey);
 
-            if (playerLevelStatsData == null) return 0;
+            if (playerLevelStatsData == null) return neverClearPercentage;
 
-            if (!playerLevelStatsData.validScore) return 0;
+            if (!playerLevelStatsData.validScore) return neverClearPercentage;
 
             int highscore = playerLevelStatsData.highScore;
 
@@ -115,41 +121,6 @@ namespace PredictStarNumberMod.HarmonyPatches
             double resultPercentage = (double)((double)highscore / (double)currentDifficultyMaxScore);
 
             return resultPercentage;
-        }
-
-        private void SetCurve(Curves curves)
-        {
-            _pPCalculator.Curve = curves.ScoreSaber.standardCurve;
-            _pPCalculator.Slopes = _pPCalculator.GetSlopes();
-        }
-
-        public async Task<double> CalculatePP(double accuracy, bool failed = false)
-        {
-            if (_pPCalculator.Curve == null || _pPCalculator.Slopes == null)
-            {
-                while (!_curveDownloader.CurvesDownloadFinished)
-                {
-                    Plugin.Log?.Info("Waiting for CurveDownloader to initialize");
-                    await Task.Delay(300);
-                }
-                SetCurve(_curveDownloader.Curves);
-            }
-
-            while(!_predictedStarNumberMonitor.PredictedStarNumberChanged)
-            {
-                await Task.Delay(200);
-            }
-            _predictedStarNumberMonitor.PredictedStarNumberChanged = false;
-
-            double rawPP = _star.PredictedStarNumber * _pPCalculator.DefaultStarMultipllier;
-
-            double multiplier = _pPCalculator.Multiplier;
-            if (failed)
-            {
-                multiplier -= 0.5f;
-            }
-
-            return rawPP * _pPCalculator.GetCurveMultiplier(accuracy * multiplier);
         }
     }
 }

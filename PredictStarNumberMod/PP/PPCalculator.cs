@@ -1,16 +1,59 @@
-﻿using System;
+﻿using PredictStarNumberMod.Star;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace PredictStarNumberMod.PP
 {
     public class PPCalculator
     {
+        public double PredictedPP { get; set; }
+
         internal List<Point> Curve { get; set; }
         internal double[] Slopes { get; set; }
 
+        internal double NoPredictedPP { get; } = -1;
         internal double DefaultStarMultipllier { get; } = 42.11;
         internal double Multiplier { get; } = 1;
+
+        private readonly Star.Star _star;
+        private readonly CurveDownloader _curveDownloader;
+
+        public PPCalculator(Star.Star star, CurveDownloader curveDownloader)
+        {
+            _star = star;
+            _curveDownloader = curveDownloader;
+        }
+
+        public async Task<double> CalculatePP(double accuracy, bool failed = false)
+        {
+            if (this.Curve == null || this.Slopes == null)
+            {
+                while (!_curveDownloader.CurvesDownloadFinished)
+                {
+                    Plugin.Log?.Info("Waiting for CurveDownloader to initialize");
+                    await Task.Delay(300);
+                }
+                SetCurve(_curveDownloader.Curves);
+            }
+
+            double rawPP = _star.PredictedStarNumber * this.DefaultStarMultipllier;
+
+            double multiplier = this.Multiplier;
+            if (failed)
+            {
+                multiplier -= 0.5f;
+            }
+
+            return rawPP * this.GetCurveMultiplier(accuracy * multiplier);
+        }
+
+        private void SetCurve(Curves curves)
+        {
+            this.Curve = curves.ScoreSaber.standardCurve;
+            this.Slopes = this.GetSlopes();
+        }
 
         internal double[] GetSlopes()
         {

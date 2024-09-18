@@ -5,7 +5,7 @@ namespace PredictStarNumberMod.PP
 {
     public class PredictedStarNumberMonitor : IInitializable, IDisposable
     {
-        public bool PredictedStarNumberChanged { get; set; } = false;
+        public bool PredictedStarNumberChanged { get; private set; } = false;
 
         private bool _disposedValue;
 
@@ -24,6 +24,11 @@ namespace PredictStarNumberMod.PP
         private void OnChangedPredictedStarNumber()
         {
             this.PredictedStarNumberChanged = true;
+        }
+
+        internal void ClearPredictedStarNumberChanged()
+        {
+            this.PredictedStarNumberChanged = false;
         }
 
         protected virtual void Dispose(bool disposing)
