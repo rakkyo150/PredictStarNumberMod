@@ -1,14 +1,11 @@
-﻿using HarmonyLib;
-using IPA;
+﻿using IPA;
 using IPA.Config;
 using IPA.Config.Stores;
 using PredictStarNumberMod.Installers;
-using PredictStarNumberMod.Patches;
 using SiraUtil.Zenject;
 using System;
 using System.Reflection;
 using IPALogger = IPA.Logging.Logger;
-using SiraUtil.Affinity;
 
 namespace PredictStarNumberMod
 {
@@ -45,7 +42,6 @@ namespace PredictStarNumberMod
             injector.Install<MenuInstaller>(Location.Menu);
             injector.Install<AppInstaller>(Location.App);
             Plugin.Log?.Debug("Config loaded");
-            Plugin.Log.Info(nameof(StandardLevelDetailView.RefreshContent));
         }
         #endregion
 

@@ -9,10 +9,10 @@ namespace PredictStarNumberMod.Installers
         public override void InstallBindings()
         {
             Container.BindInterfacesAndSelfTo<SettingViewController>().FromNewComponentAsViewController().AsSingle();
-            Container.BindInterfacesAndSelfTo<PredictedStarNumberMonitor>().AsSingle();
             Container.BindInterfacesTo<LevelStatsViewPatch>().AsSingle();
             Container.BindInterfacesTo<MapDataGetter>().AsSingle();
             Container.BindInterfacesTo<StarNumberSetter>().AsSingle();
+            Container.BindInterfacesAndSelfTo<PredictedStarNumberMonitor>().AsSingle();
         }
     }
 }

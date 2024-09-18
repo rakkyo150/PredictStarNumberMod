@@ -1,0 +1,31 @@
+﻿{
+  "$schema": "https://raw.githubusercontent.com/bsmg/BSIPA-MetadataFileSchema/master/Schema.json",
+  "id": "PredictStarNumberCounter",
+  "name": "PredictStarNumberCounter",
+  "author": "",
+  "version": "0.0.1",
+  "description": "",
+  "gameVersion": "1.36.2",
+  "dependsOn": {
+    "BSIPA": "^4.2.0",
+    "PredictStarNumberMod": "^1.3.0"
+  },
+  "loadAfter": [ "Counters+" ],
+  "features": {
+    "CountersPlus.CustomCounter": {
+        "Name": "Predict Star Number Counter",
+        "Description": "Shows predicted stars and predicted pp",
+        "CounterLocation": "PredictStarNumberCounter.PredictStarNumberCounter",
+        "MultiplayerReady": true,
+        "ConfigDefaults": {
+            "Enable": true,
+            "Position": "AboveCombo",
+            "Distance": 0
+        },
+        "BSML": {
+            "Resource": "PredictStarNumberCounter.Views.View.bsml",
+            "Host": "PredictStarNumberCounter.Views.ViewController"
+        }
+    }
+  }
+}
