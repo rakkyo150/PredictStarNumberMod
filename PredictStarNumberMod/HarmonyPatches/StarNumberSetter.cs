@@ -1,16 +1,15 @@
 ﻿using BetterSongList.HarmonyPatches.UI;
-using HarmonyLib;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Newtonsoft.Json;
 using PredictStarNumberMod.Configuration;
 using PredictStarNumberMod.Map;
+using PredictStarNumberMod.PP;
 using SiraUtil.Affinity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Reflection;
 using System.Threading.Tasks;
 using TMPro;
 
@@ -21,24 +20,17 @@ namespace PredictStarNumberMod.HarmonyPatches
 {
     public class StarNumberSetter : IAffinity
     {
-        public static double PredictedStarNumber { get; set; } = double.MinValue;
-
         private readonly MapDataContainer _mapDataContainer;
+        private readonly Star.Star _star;
+        private readonly Model.Model _model;
 
-        internal static double skipStarNumber { get; } = -1.0;
-        internal static double errorStarNumber { get; } = -10.0;
+        private float originalFontSize = float.MinValue;
 
-        public static Action ChangedPredictedStarNumber;
-
-        private static string modelAssetEndpoint = "https://api.github.com/repos/rakkyo150/PredictStarNumberHelper/releases/latest";
-        private static byte[] modelByte = new byte[] { 0 };
-        private static InferenceSession session = null;
-
-        private static float originalFontSize = float.MinValue;
-
-        public StarNumberSetter(MapDataContainer mapDataContainer)
+        public StarNumberSetter(MapDataContainer mapDataContainer, Star.Star star, Model.Model model)
         {
             _mapDataContainer = mapDataContainer;
+            _star = star;
+            _model = model;
         }
 
         public class LatestRelease
@@ -78,17 +70,17 @@ namespace PredictStarNumberMod.HarmonyPatches
 
             if (!PluginConfig.Instance.Enable)
             {
-                if (PredictedStarNumber == skipStarNumber) return;
+                if (_star.PredictedStarNumber == _star.SkipStarNumber) return;
                 
                 // In oreder to hide overlay
-                ChangePredictedStarNumber(skipStarNumber);
+                _star.ChangePredictedStarNumber(_star.SkipStarNumber);
                 return;
             }
 
             // データなし
             if (___fields[1].text == "?")
             {
-                ChangePredictedStarNumber(skipStarNumber);
+                _star.ChangePredictedStarNumber(_star.SkipStarNumber);
                 return;
             }
 
@@ -112,9 +104,9 @@ namespace PredictStarNumberMod.HarmonyPatches
             {
                 try
                 {
-                    ChangePredictedStarNumber(await PredictStarNumber());
+                    _star.ChangePredictedStarNumber(await PredictStarNumber());
                     
-                    string predictedStarNumberString = PredictedStarNumber.ToString("0.00");
+                    string predictedStarNumberString = _star.PredictedStarNumber.ToString("0.00");
 #if DEBUG
                     Plugin.Log.Info(predictedStarNumberString);
 #endif
@@ -129,7 +121,7 @@ namespace PredictStarNumberMod.HarmonyPatches
                 catch (Exception ex)
                 {
                     Plugin.Log.Error(ex);
-                    ChangePredictedStarNumber(errorStarNumber);
+                    _star.ChangePredictedStarNumber(_star.ErrorStarNumber);
                     if (isRankedMap)
                     {
                         SetPredictedStarNumberForRankedMap(fields, "Error");
@@ -146,17 +138,17 @@ namespace PredictStarNumberMod.HarmonyPatches
                 var sw = new System.Diagnostics.Stopwatch();
                 sw.Start();
 #endif
-                if (modelByte.Length == 1)
+                if (_model.ModelByte.Length == 1)
                 {
-                    modelByte = await GetModel();
+                    _model.ModelByte = await GetModel();
                 }
 
                 _mapDataContainer.Data = await _mapDataContainer.GetMapData(_mapDataContainer.MapHash, _mapDataContainer.BeatmapDifficulty, _mapDataContainer.Characteristic);
-                if (session == null)
+                if (_model.Session == null)
                 {
-                    session = new InferenceSession(modelByte);
+                    _model.Session = new InferenceSession(_model.ModelByte);
                 }
-                string inputNoneName = session?.InputMetadata.First().Key;
+                string inputNoneName = _model.Session?.InputMetadata.First().Key;
                 double[] data = new double[15]
                 {
                     _mapDataContainer.Data.Bpm,
@@ -176,7 +168,7 @@ namespace PredictStarNumberMod.HarmonyPatches
                     _mapDataContainer.Data.Resets
                 };
 #if DEBUG
-                var innodedims = session?.InputMetadata.First().Value.Dimensions;
+                var innodedims = _model.Session?.InputMetadata.First().Value.Dimensions;
                 Plugin.Log.Info(string.Join(", ",innodedims));
                 Plugin.Log.Info(string.Join(". ", data));
 #endif
@@ -185,7 +177,7 @@ namespace PredictStarNumberMod.HarmonyPatches
                     {
                         NamedOnnxValue.CreateFromTensor<double>(inputNoneName, inputTensor)
                     };
-                using (var results = session?.Run(inputs))
+                using (var results = _model.Session?.Run(inputs))
                 {
 #if DEBUG
                     Plugin.Log.Info(string.Join(". ", results));
@@ -199,7 +191,7 @@ namespace PredictStarNumberMod.HarmonyPatches
             async Task<byte[]> GetModel()
             {
                 HttpClient client = new HttpClient();
-                var request = new HttpRequestMessage(HttpMethod.Get, modelAssetEndpoint);
+                var request = new HttpRequestMessage(HttpMethod.Get, _model.ModelAssetEndpoint);
                 request.Headers.Add("User-Agent", "C# App");
                 var response = await client.SendAsync(request);
                 string assetString = await response.Content.ReadAsStringAsync();
@@ -215,12 +207,6 @@ namespace PredictStarNumberMod.HarmonyPatches
                 request.Dispose();
                 return await modelResponse.Content.ReadAsByteArrayAsync();
             }
-        }
-
-        private static void ChangePredictedStarNumber(double newPredictedStarNumber)
-        {
-            PredictedStarNumber = newPredictedStarNumber;
-            ChangedPredictedStarNumber?.Invoke();
         }
 
         private static void SetPredictedStarNumberForRankedMap(TextMeshProUGUI[] fields, string predictedStarNumber)

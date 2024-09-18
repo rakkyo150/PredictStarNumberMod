@@ -1,5 +1,4 @@
-﻿using PredictStarNumberMod.HarmonyPatches;
-using System;
+﻿using System;
 using Zenject;
 
 namespace PredictStarNumberMod.PP
@@ -10,9 +9,16 @@ namespace PredictStarNumberMod.PP
 
         private bool _disposedValue;
 
+        private readonly Star.Star _star;
+
+        public PredictedStarNumberMonitor(Star.Star star)
+        {
+            _star = star;
+        }
+
         public void Initialize()
         {
-            StarNumberSetter.ChangedPredictedStarNumber += OnChangedPredictedStarNumber;
+            _star.ChangedPredictedStarNumber += OnChangedPredictedStarNumber;
         }
 
         private void OnChangedPredictedStarNumber()
@@ -26,7 +32,7 @@ namespace PredictStarNumberMod.PP
             {
                 if (disposing)
                 {
-                    StarNumberSetter.ChangedPredictedStarNumber -= OnChangedPredictedStarNumber;
+                    _star.ChangedPredictedStarNumber -= OnChangedPredictedStarNumber;
                 }
                 this._disposedValue = true;
             }
