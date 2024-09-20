@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace PredictStarNumberMod.PP
 {
-    public class PPCalculator
+    public class PP
     {
-        public double HighestPredictedPP { get; set; }
+        private double bestPredictedPP;
         public double NoPredictedPP { get; } = -1;
 
         internal List<Point> Curve { get; set; }
@@ -17,42 +18,75 @@ namespace PredictStarNumberMod.PP
 
         private readonly Star.Star _star;
         private readonly CurveDownloader _curveDownloader;
+        private readonly BestPredictedPPMonitor _bestPredictedPPMonitor;
 
-        public PPCalculator(Star.Star star, CurveDownloader curveDownloader)
+        public PP(Star.Star star, CurveDownloader curveDownloader, BestPredictedPPMonitor predictedPPMonitor)
         {
             _star = star;
             _curveDownloader = curveDownloader;
+            _bestPredictedPPMonitor = predictedPPMonitor;
+        }
+
+        public async Task<double> GetLatestBestPredictedPP()
+        {
+            await _bestPredictedPPMonitor.AwaitUntilBestPredictedPPChangedCompletly();
+            return this.bestPredictedPP;
+        }
+
+        internal void SetBestPredictedPP(double newPredictedPP)
+        {
+            this.bestPredictedPP = newPredictedPP;
+            _bestPredictedPPMonitor.FinishChangingBestPredictedPP();
+#if DEBUG
+            Plugin.Log.Info("predictedPP Changed ");
+#endif
         }
 
         public async Task<double> CalculatePP(double accuracy, bool failed = false)
         {
-            if (this.Curve == null || this.Slopes == null)
+            try
             {
-                while (!_curveDownloader.CurvesDownloadFinished)
+                if (this.Curve == null || this.Slopes == null)
                 {
-                    Plugin.Log?.Info("Waiting for CurveDownloader to initialize");
-                    await Task.Delay(300);
+                    while (!_curveDownloader.CurvesDownloadFinished)
+                    {
+                        Plugin.Log?.Info("Waiting for CurveDownloader to initialize");
+                        await Task.Delay(300);
+                    }
+                    SetCurve(_curveDownloader.Curves);
                 }
-                SetCurve(_curveDownloader.Curves);
-            }
 
-            double predictedStarNumber = await _star.GetPredictedStarNumber();
-            
-            if(predictedStarNumber == _star.SkipStarNumber
-                               || predictedStarNumber == _star.ErrorStarNumber)
+                double predictedStarNumber = await _star.GetLatestPredictedStarNumber();
+
+                if (predictedStarNumber == _star.SkipStarNumber
+                                   || predictedStarNumber == _star.ErrorStarNumber)
+                {
+                    return this.NoPredictedPP;
+                }
+
+                double rawPP = predictedStarNumber * this.DefaultStarMultipllier;
+
+                double multiplier = this.Multiplier;
+                if (failed)
+                {
+                    multiplier -= 0.5f;
+                }
+
+                return rawPP * this.GetCurveMultiplier(accuracy * multiplier);
+            }
+            catch (Exception ex)
             {
+                Plugin.Log.Error(ex);
                 return this.NoPredictedPP;
             }
-
-            double rawPP = predictedStarNumber * this.DefaultStarMultipllier;
-
-            double multiplier = this.Multiplier;
-            if (failed)
-            {
-                multiplier -= 0.5f;
-            }
-
-            return rawPP * this.GetCurveMultiplier(accuracy * multiplier);
+        }
+        
+        internal async Task<double> CalculateBestPP(double accuracy, bool failed = false)
+        {
+            _bestPredictedPPMonitor.PlusTryCalculatingCount();
+            double bestPP = await this.CalculatePP(accuracy, failed);
+            _bestPredictedPPMonitor.MinusTryCalculatingCount();
+            return bestPP;
         }
 
         private void SetCurve(Curves curves)

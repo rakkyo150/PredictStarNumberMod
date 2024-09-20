@@ -28,13 +28,13 @@ namespace PredictStarNumberMod.Star
             _predictedStarNumberMonitor = predictedStarNumberMonitor;
         }
 
-        public async Task<double> GetPredictedStarNumber()
+        public async Task<double> GetLatestPredictedStarNumber()
         {
             await _predictedStarNumberMonitor.AwaitUntilPredictedStarNumberChangedCompletly();
             return this.predictedStarNumber;
         } 
 
-        internal void ChangePredictedStarNumber(double newPredictedStarNumber)
+        internal void SetPredictedStarNumber(double newPredictedStarNumber)
         {
             this.predictedStarNumber = newPredictedStarNumber;
             _predictedStarNumberMonitor.FinishChangingPredictedStarNumber();

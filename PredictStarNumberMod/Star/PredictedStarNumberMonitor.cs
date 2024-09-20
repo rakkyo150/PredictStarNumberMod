@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace PredictStarNumberMod.PP
+namespace PredictStarNumberMod.Star
 {
     public class PredictedStarNumberMonitor
     {
