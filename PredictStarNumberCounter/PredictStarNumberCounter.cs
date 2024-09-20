@@ -15,7 +15,7 @@ namespace PredictStarNumberCounter
     internal class PredictStarNumberCounter: BasicCustomCounter, INoteEventHandler, IDisposable
     {
         private readonly Star _star;
-        private readonly PPCalculator _pPCalculator;
+        private readonly PP _pP;
         private readonly RelativeScoreAndImmediateRankCounter _relativeScoreAndImmediateRank;
 
         private TMP_Text _counterLeft;
@@ -26,10 +26,10 @@ namespace PredictStarNumberCounter
         float z = PluginConfig.Instance.OffsetZ;
         private bool disposedValue;
 
-        public PredictStarNumberCounter(Star star, PPCalculator pPCalculator, RelativeScoreAndImmediateRankCounter relativeScoreAndImmediateRank)
+        public PredictStarNumberCounter(Star star, PP pP, RelativeScoreAndImmediateRankCounter relativeScoreAndImmediateRank)
         {
             _star = star;
-            _pPCalculator = pPCalculator;
+            _pP = pP;
             _relativeScoreAndImmediateRank = relativeScoreAndImmediateRank;
 
             _relativeScoreAndImmediateRank.relativeScoreOrImmediateRankDidChangeEvent += ChangeNowPP;
@@ -52,8 +52,7 @@ namespace PredictStarNumberCounter
             _counterRight = CanvasUtility.CreateTextFromSettings(Settings, new Vector3(x + 0.2f, y - 0.2f, z));
             _counterRight.lineSpacing = -26;
             _counterRight.fontSize = PluginConfig.Instance.FigureFontSize;
-            _counterRight.text = _pPCalculator.HighestPredictedPP.ToString("0.00") + "PP";
-            AddStarInfo(_counterRight);
+            AddPPAndStarInfo(_counterRight);
             _counterRight.alignment = TextAlignmentOptions.TopLeft;
 
             leftOffset = new Vector3(x - 0.2f, y - 0.2f, z);
@@ -66,15 +65,21 @@ namespace PredictStarNumberCounter
             _counterLeft.alignment = leftAlign;
         }
 
-        private async Task AddStarInfo(TMP_Text counter)
+        private async Task AddPPAndStarInfo(TMP_Text counter)
         {
-            double predictedStarNumber = await _star.GetPredictedStarNumber();
+            double predictedStarNumber = await _star.GetLatestPredictedStarNumber();
             if (predictedStarNumber == _star.ErrorStarNumber || predictedStarNumber == _star.SkipStarNumber)
             {
                 counter.text = "-";
                 return;
             }
-            counter.text += "(★" + predictedStarNumber.ToString("0.00p") + ")";
+            double bestPredictedPP = await _pP.GetLatestBestPredictedPP();
+            if(bestPredictedPP == _pP.NoPredictedPP)
+            {
+                counter.text = "-";
+                return;
+            }
+            counter.text = bestPredictedPP.ToString("0.00") + "PP(★" + predictedStarNumber.ToString("0.00p") + ")";
         }
 
         public void OnNoteCut(NoteData data, NoteCutInfo info)
@@ -84,8 +89,8 @@ namespace PredictStarNumberCounter
 
         private async void ChangeNowPP()
         {
-            double nowPP = await _pPCalculator.CalculatePP(Convert.ToDouble(_relativeScoreAndImmediateRank.relativeScore));
-            if(nowPP == _pPCalculator.NoPredictedPP)
+            double nowPP = await _pP.CalculatePP(Convert.ToDouble(_relativeScoreAndImmediateRank.relativeScore));
+            if(nowPP == _pP.NoPredictedPP)
             {
                 _counterLeft.text = "-";
                 return;

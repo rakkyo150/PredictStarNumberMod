@@ -1,7 +1,7 @@
 ﻿using BetterSongList.HarmonyPatches.UI;
 using PredictStarNumberMod.Configuration;
 using PredictStarNumberMod.Map;
-using PredictStarNumberMod.PP;
+using PredictStarNumberMod.Star;
 using SiraUtil.Affinity;
 using System;
 using System.Collections.Generic;
@@ -75,14 +75,14 @@ namespace PredictStarNumberMod.HarmonyPatches
             if (!PluginConfig.Instance.Enable)
             {                
                 // In oreder to hide overlay
-                _star.ChangePredictedStarNumber(_star.SkipStarNumber);
+                _star.SetPredictedStarNumber(_star.SkipStarNumber);
                 return;
             }
 
             // データなし
             if (___fields[1].text == "?")
             {
-                _star.ChangePredictedStarNumber(_star.SkipStarNumber);
+                _star.SetPredictedStarNumber(_star.SkipStarNumber);
                 return;
             }
 
@@ -104,7 +104,7 @@ namespace PredictStarNumberMod.HarmonyPatches
             // 非同期で書き換えをする必要がある
             async Task wrapper(TextMeshProUGUI[] fields)
             {
-                double predictedStarNumber = await _star.GetPredictedStarNumber();
+                double predictedStarNumber = await _star.GetLatestPredictedStarNumber();
                 
                 if (predictedStarNumber == _star.ErrorStarNumber)
                 {

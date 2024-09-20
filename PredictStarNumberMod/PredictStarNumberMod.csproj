@@ -195,9 +195,10 @@
     </None>
     <Compile Include="Plugin.cs" />
     <Compile Include="Configuration\PluginConfig.cs" />
-    <Compile Include="PP\PPCalculator.cs" />
+    <Compile Include="PP\PP.cs" />
     <Compile Include="PP\CurveDownloader.cs" />
-    <Compile Include="PP\PredictedStarNumberMonitor.cs" />
+    <Compile Include="PP\BestPredictedPPMonitor.cs" />
+    <Compile Include="Star\PredictedStarNumberMonitor.cs" />
     <Compile Include="Star\Star.cs" />
     <Compile Include="Views\SettingViewController.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

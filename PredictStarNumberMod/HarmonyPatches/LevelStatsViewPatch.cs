@@ -1,5 +1,6 @@
 ﻿using IPA.Loader;
 using PredictStarNumberMod.PP;
+using PredictStarNumberMod.Star;
 using SiraUtil.Affinity;
 using System;
 using System.Threading;
@@ -20,19 +21,21 @@ namespace PredictStarNumberMod.HarmonyPatches
 
         private RectTransform rectTransform;
 
-        private readonly PPCalculator _pPCalculator;
+        private readonly PP.PP _pP;
         private readonly Star.Star _star;
         private readonly PredictedStarNumberMonitor _predictedStarNumberMonitor;
+        private readonly BestPredictedPPMonitor _bestPredictedPPMonitor;
         private readonly BeatmapLevelLoader _beatmapLevelLoader;
         private readonly StandardLevelDetailViewController _standardLevelDetailViewController;
         private readonly BeatmapLevelsEntitlementModel _beatmapLevelsEntitlementModel;
         private readonly BeatmapDataLoader _beatmapDataLoader = new BeatmapDataLoader();
 
-        public LevelStatsViewPatch(PPCalculator pPCalculator, Star.Star star, PredictedStarNumberMonitor predictedStarNumberMonitor, CurveDownloader curveDownloader, BeatmapLevelLoader beatmapLevelLoader, StandardLevelDetailViewController standardLevelDetailViewController, BeatmapLevelsEntitlementModel beatmapLevelsEntitlementModel)
+        public LevelStatsViewPatch(PP.PP pP, Star.Star star, PredictedStarNumberMonitor predictedStarNumberMonitor, BestPredictedPPMonitor bestPredictedPPMonitor, CurveDownloader curveDownloader, BeatmapLevelLoader beatmapLevelLoader, StandardLevelDetailViewController standardLevelDetailViewController, BeatmapLevelsEntitlementModel beatmapLevelsEntitlementModel)
         {
-            _pPCalculator = pPCalculator;
+            _pP = pP;
             _star = star;
             _predictedStarNumberMonitor = predictedStarNumberMonitor;
+            _bestPredictedPPMonitor = bestPredictedPPMonitor;
             _beatmapLevelLoader = beatmapLevelLoader;
             _standardLevelDetailViewController = standardLevelDetailViewController;
             _beatmapLevelsEntitlementModel = beatmapLevelsEntitlementModel;
@@ -44,6 +47,7 @@ namespace PredictStarNumberMod.HarmonyPatches
         {
             // 前回実行時に譜面データはあるがプレイヤーのクリアデータがない場合、trueになったままなので
             _predictedStarNumberMonitor.StartChangingPredictedStarNumber();
+            _bestPredictedPPMonitor.StartChangingBestPredictedPP();
             rectTransform = ____highScoreText.GetComponent<RectTransform>();
             if (rectTransform.anchoredPosition == modifiedAnchordPostion)
                 rectTransform.anchoredPosition = originalAnchoredPosition;
@@ -69,22 +73,22 @@ namespace PredictStarNumberMod.HarmonyPatches
         {
             try
             {
-                _star.ChangePredictedStarNumber(await _star.PredictStarNumber());
+                _star.SetPredictedStarNumber(await _star.PredictStarNumber());
             }
             catch(Exception ex)
             {
                 Plugin.Log.Error(ex);
-                _star.ChangePredictedStarNumber(_star.ErrorStarNumber);
+                _star.SetPredictedStarNumber(_star.ErrorStarNumber);
             }
 
             double percentage = await GetPercentage(beatmapKey, playerData);
 
             if (percentage == neverClearPercentage)
             {
-                _pPCalculator.HighestPredictedPP = _pPCalculator.NoPredictedPP;
+                _pP.SetBestPredictedPP(_pP.NoPredictedPP);
                 if (PluginManager.GetPlugin("BetterSongList") != null) return;
                 DeleteSecondAndSubsequentLines(field);
-                double predictedStarNumber = await _star.GetPredictedStarNumber();
+                double predictedStarNumber = await _star.GetLatestPredictedStarNumber();
                 if (predictedStarNumber == _star.SkipStarNumber
                     || predictedStarNumber == _star.ErrorStarNumber)
                     return;
@@ -95,27 +99,28 @@ namespace PredictStarNumberMod.HarmonyPatches
 
             try
             {
-                double predictedStarNumber = await _star.GetPredictedStarNumber();
+                double predictedStarNumber = await _star.GetLatestPredictedStarNumber();
 
                 DeleteSecondAndSubsequentLines(field);
                 if (predictedStarNumber == _star.SkipStarNumber
                     || predictedStarNumber == _star.ErrorStarNumber)
                 {
-                    _pPCalculator.HighestPredictedPP = _pPCalculator.NoPredictedPP;
+                    _pP.SetBestPredictedPP(_pP.NoPredictedPP);
                     return;
                 }
-
-                _pPCalculator.HighestPredictedPP = await _pPCalculator.CalculatePP(percentage);
+                _pP.SetBestPredictedPP(await _pP.CalculateBestPP(percentage));
+                
+                double bestPredictedPP = await _pP.GetLatestBestPredictedPP();
 #if DEBUG
-                Plugin.Log.Info(_pPCalculator.HighestPredictedPP.ToString());
+                Plugin.Log.Info(bestPredictedPP.ToString());
 #endif
                 if(PluginManager.GetPlugin("BetterSongList") == null)
                 {
-                    field.text += "\n(★" + predictedStarNumber.ToString("0.00") + " | " + _pPCalculator.HighestPredictedPP.ToString("0.00") + "PP)";
+                    field.text += "\n(★" + predictedStarNumber.ToString("0.00") + " | " + bestPredictedPP.ToString("0.00") + "PP)";
                 }
                 else
                 {
-                    field.text += "\n(" + _pPCalculator.HighestPredictedPP.ToString("0.00") + "PP)";
+                    field.text += "\n(" + bestPredictedPP.ToString("0.00") + "PP)";
                 }
                 ChangeFieldHeightForSecondAndSubsequentLines(rectTransform);
                 Plugin.Log.Info(field.text);

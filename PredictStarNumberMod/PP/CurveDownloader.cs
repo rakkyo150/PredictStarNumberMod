@@ -1,11 +1,10 @@
 ﻿using Newtonsoft.Json;
-using PredictStarNumberMod.HarmonyPatches;
 using System;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using Zenject;
-using static PredictStarNumberMod.PP.PPCalculator;
+using static PredictStarNumberMod.PP.PP;
 
 namespace PredictStarNumberMod.PP
 {
