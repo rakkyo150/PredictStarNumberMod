@@ -81,7 +81,7 @@ namespace PredictStarNumberMod.HarmonyPatches
 
             if (percentage == neverClearPercentage)
             {
-                _pPCalculator.PredictedPP = _pPCalculator.NoPredictedPP;
+                _pPCalculator.HighestPredictedPP = _pPCalculator.NoPredictedPP;
                 if (PluginManager.GetPlugin("BetterSongList") != null) return;
                 DeleteSecondAndSubsequentLines(field);
                 double predictedStarNumber = await _star.GetPredictedStarNumber();
@@ -97,22 +97,25 @@ namespace PredictStarNumberMod.HarmonyPatches
             {
                 double predictedStarNumber = await _star.GetPredictedStarNumber();
 
-                _pPCalculator.PredictedPP = await _pPCalculator.CalculatePP(percentage);
-#if DEBUG
-                Plugin.Log.Info(_pPCalculator.PredictedPP.ToString());
-#endif
-
                 DeleteSecondAndSubsequentLines(field);
                 if (predictedStarNumber == _star.SkipStarNumber
                     || predictedStarNumber == _star.ErrorStarNumber)
+                {
+                    _pPCalculator.HighestPredictedPP = _pPCalculator.NoPredictedPP;
                     return;
+                }
+
+                _pPCalculator.HighestPredictedPP = await _pPCalculator.CalculatePP(percentage);
+#if DEBUG
+                Plugin.Log.Info(_pPCalculator.HighestPredictedPP.ToString());
+#endif
                 if(PluginManager.GetPlugin("BetterSongList") == null)
                 {
-                    field.text += "\n(★" + predictedStarNumber.ToString("0.00") + " | " + _pPCalculator.PredictedPP.ToString("0.00") + "PP)";
+                    field.text += "\n(★" + predictedStarNumber.ToString("0.00") + " | " + _pPCalculator.HighestPredictedPP.ToString("0.00") + "PP)";
                 }
                 else
                 {
-                    field.text += "\n(" + _pPCalculator.PredictedPP.ToString("0.00") + "PP)";
+                    field.text += "\n(" + _pPCalculator.HighestPredictedPP.ToString("0.00") + "PP)";
                 }
                 ChangeFieldHeightForSecondAndSubsequentLines(rectTransform);
                 Plugin.Log.Info(field.text);

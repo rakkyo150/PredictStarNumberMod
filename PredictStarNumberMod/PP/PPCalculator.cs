@@ -6,12 +6,12 @@ namespace PredictStarNumberMod.PP
 {
     public class PPCalculator
     {
-        public double PredictedPP { get; set; }
+        public double HighestPredictedPP { get; set; }
+        public double NoPredictedPP { get; } = -1;
 
         internal List<Point> Curve { get; set; }
         internal double[] Slopes { get; set; }
 
-        internal double NoPredictedPP { get; } = -1;
         internal double DefaultStarMultipllier { get; } = 42.11;
         internal double Multiplier { get; } = 1;
 
@@ -37,6 +37,13 @@ namespace PredictStarNumberMod.PP
             }
 
             double predictedStarNumber = await _star.GetPredictedStarNumber();
+            
+            if(predictedStarNumber == _star.SkipStarNumber
+                               || predictedStarNumber == _star.ErrorStarNumber)
+            {
+                return this.NoPredictedPP;
+            }
+
             double rawPP = predictedStarNumber * this.DefaultStarMultipllier;
 
             double multiplier = this.Multiplier;
