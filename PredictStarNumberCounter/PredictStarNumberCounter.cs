@@ -6,6 +6,7 @@ using PredictStarNumberMod.PP;
 using PredictStarNumberMod.Star;
 using System;
 using System.Globalization;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 
@@ -51,7 +52,8 @@ namespace PredictStarNumberCounter
             _counterRight = CanvasUtility.CreateTextFromSettings(Settings, new Vector3(x + 0.2f, y - 0.2f, z));
             _counterRight.lineSpacing = -26;
             _counterRight.fontSize = PluginConfig.Instance.FigureFontSize;
-            _counterRight.text = _pPCalculator.PredictedPP.ToString("0.00") + "PP(★" + _star.PredictedStarNumber.ToString("0.00p") + ")";
+            _counterRight.text = _pPCalculator.PredictedPP.ToString("0.00") + "PP";
+            AddStarInfo(_counterRight);
             _counterRight.alignment = TextAlignmentOptions.TopLeft;
 
             leftOffset = new Vector3(x - 0.2f, y - 0.2f, z);
@@ -62,6 +64,12 @@ namespace PredictStarNumberCounter
             _counterLeft.fontSize = PluginConfig.Instance.FigureFontSize;
             _counterLeft.text = "0.00PP";
             _counterLeft.alignment = leftAlign;
+        }
+
+        private async Task AddStarInfo(TMP_Text counter)
+        {
+            double predictedStarNumber = await _star.GetPredictedStarNumber();
+            counter.text += "(★" + predictedStarNumber.ToString("0.00p") + ")";
         }
 
         public void OnNoteCut(NoteData data, NoteCutInfo info)

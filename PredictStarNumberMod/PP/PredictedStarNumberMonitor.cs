@@ -1,30 +1,28 @@
-﻿using System;
-using System.Threading.Tasks;
-using Zenject;
+﻿using System.Threading.Tasks;
 
 namespace PredictStarNumberMod.PP
 {
     public class PredictedStarNumberMonitor
     {
-        private bool PredictedStarNumberChanged = false;
+        private bool predictedStarNumberChangeCompleted = false;
         private int tryPredictingCount = 0;
 
-        public async Task AwaitUntilPredictedStarNumberChanged()
+        public async Task AwaitUntilPredictedStarNumberChangedCompletly()
         {
-            while (!this.PredictedStarNumberChanged || tryPredictingCount != 0)
+            while (!(this.predictedStarNumberChangeCompleted && tryPredictingCount == 0))
             {
                 await Task.Delay(200);
             }
         }
-        
-        internal void ChangePredictedStarNumberMonitorTrue()
+
+        internal void FinishChangingPredictedStarNumber()
         {
-            this.PredictedStarNumberChanged = true;
+            this.predictedStarNumberChangeCompleted = true;
         }
 
-        internal void ClearPredictedStarNumberChanged()
+        internal void StartChangingPredictedStarNumber()
         {
-            this.PredictedStarNumberChanged = false;
+            this.predictedStarNumberChangeCompleted = false;
         }
 
         internal void PlusTryPredictingCount()

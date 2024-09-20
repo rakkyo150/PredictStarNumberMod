@@ -18,6 +18,8 @@ namespace PredictStarNumberMod.HarmonyPatches
         private Vector2 modifiedAnchordPostion = new Vector2((float)12.00, (float)-5.30);
         private double neverClearPercentage = 0;
 
+        private RectTransform rectTransform;
+
         private readonly PPCalculator _pPCalculator;
         private readonly Star.Star _star;
         private readonly PredictedStarNumberMonitor _predictedStarNumberMonitor;
@@ -41,8 +43,8 @@ namespace PredictStarNumberMod.HarmonyPatches
         protected void Prefix(ref TextMeshProUGUI ____highScoreText)
         {
             // 前回実行時に譜面データはあるがプレイヤーのクリアデータがない場合、trueになったままなので
-            _predictedStarNumberMonitor.ClearPredictedStarNumberChanged();
-            RectTransform rectTransform = ____highScoreText.GetComponent<RectTransform>();
+            _predictedStarNumberMonitor.StartChangingPredictedStarNumber();
+            rectTransform = ____highScoreText.GetComponent<RectTransform>();
             if (rectTransform.anchoredPosition == modifiedAnchordPostion)
                 rectTransform.anchoredPosition = originalAnchoredPosition;
         }
@@ -63,7 +65,7 @@ namespace PredictStarNumberMod.HarmonyPatches
             wrapper(____highScoreText, beatmapKey, playerData);
         }
 
-        private async Task wrapper(TextMeshProUGUI field,BeatmapKey beatmapKey, PlayerData playerData)
+        private async Task wrapper(TextMeshProUGUI field, BeatmapKey beatmapKey, PlayerData playerData)
         {
             try
             {
@@ -77,56 +79,60 @@ namespace PredictStarNumberMod.HarmonyPatches
 
             double percentage = await GetPercentage(beatmapKey, playerData);
 
-            RectTransform rectTransform = field.GetComponent<RectTransform>();
-
             if (percentage == neverClearPercentage)
             {
                 _pPCalculator.PredictedPP = _pPCalculator.NoPredictedPP;
                 if (PluginManager.GetPlugin("BetterSongList") != null) return;
-
-                // 短い間隔でマップを変更した場合、最終実行時の結果を残すため
-                field.text = field.text.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)[0];
-                if (_star.PredictedStarNumber == _star.SkipStarNumber
-                    || _star.PredictedStarNumber == _star.ErrorStarNumber)
+                DeleteSecondAndSubsequentLines(field);
+                double predictedStarNumber = await _star.GetPredictedStarNumber();
+                if (predictedStarNumber == _star.SkipStarNumber
+                    || predictedStarNumber == _star.ErrorStarNumber)
                     return;
-                field.text += "\n(★" + _star.PredictedStarNumber.ToString("0.00") + ")";
-                if (rectTransform.anchoredPosition == originalAnchoredPosition)
-                    rectTransform.anchoredPosition = modifiedAnchordPostion;
+                field.text += "\n(★" + predictedStarNumber.ToString("0.00") + ")";
+                ChangeFieldHeightForSecondAndSubsequentLines(rectTransform);
                 return;
             }
 
             try
             {
-                await _predictedStarNumberMonitor.AwaitUntilPredictedStarNumberChanged();
+                double predictedStarNumber = await _star.GetPredictedStarNumber();
 
                 _pPCalculator.PredictedPP = await _pPCalculator.CalculatePP(percentage);
 #if DEBUG
                 Plugin.Log.Info(_pPCalculator.PredictedPP.ToString());
 #endif
 
-                // 短い間隔でマップを変更した場合、最終実行時の結果を残すため
-                field.text = field.text.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)[0];
-                
-                if (_star.PredictedStarNumber == _star.SkipStarNumber
-                    || _star.PredictedStarNumber == _star.ErrorStarNumber)
+                DeleteSecondAndSubsequentLines(field);
+                if (predictedStarNumber == _star.SkipStarNumber
+                    || predictedStarNumber == _star.ErrorStarNumber)
                     return;
-
                 if(PluginManager.GetPlugin("BetterSongList") == null)
                 {
-                    field.text += "\n(★" + _star.PredictedStarNumber.ToString("0.00") + " | " + _pPCalculator.PredictedPP.ToString("0.00") + "PP)";
+                    field.text += "\n(★" + predictedStarNumber.ToString("0.00") + " | " + _pPCalculator.PredictedPP.ToString("0.00") + "PP)";
                 }
                 else
                 {
                     field.text += "\n(" + _pPCalculator.PredictedPP.ToString("0.00") + "PP)";
                 }
-                if (rectTransform.anchoredPosition == originalAnchoredPosition)
-                    rectTransform.anchoredPosition = modifiedAnchordPostion;
+                ChangeFieldHeightForSecondAndSubsequentLines(rectTransform);
                 Plugin.Log.Info(field.text);
             }
             catch (Exception e)
             {
                 Plugin.Log?.Error(e);
             }
+        }
+
+        private void DeleteSecondAndSubsequentLines(TextMeshProUGUI field)
+        {
+            // 短い間隔でマップを変更した場合、最終実行時の結果を残すため
+            field.text = field.text.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)[0];
+        }
+
+        private void ChangeFieldHeightForSecondAndSubsequentLines(RectTransform rectTransform)
+        {
+            if (rectTransform.anchoredPosition == originalAnchoredPosition)
+                rectTransform.anchoredPosition = modifiedAnchordPostion;
         }
 
         private async Task<double> GetPercentage(BeatmapKey beatmapKey, PlayerData playerData)

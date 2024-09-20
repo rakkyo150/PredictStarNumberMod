@@ -1,6 +1,5 @@
 ﻿using IPA.Loader;
 using PredictStarNumberMod.HarmonyPatches;
-using PredictStarNumberMod.PP;
 using Zenject;
 
 namespace PredictStarNumberMod.Installers
