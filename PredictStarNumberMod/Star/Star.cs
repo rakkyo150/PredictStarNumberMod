@@ -12,8 +12,8 @@ namespace PredictStarNumberMod.Star
     public class Star
     {
         private double predictedStarNumber = double.MinValue;
-        internal double SkipStarNumber { get; } = -1.0;
-        internal double ErrorStarNumber { get; } = -10.0;
+        public double SkipStarNumber { get; } = -1.0;
+        public double ErrorStarNumber { get; } = -10.0;
 
         public Action<double> ChangedPredictedStarNumber;
 

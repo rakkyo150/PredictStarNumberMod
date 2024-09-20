@@ -52,7 +52,7 @@ namespace PredictStarNumberCounter
             _counterRight = CanvasUtility.CreateTextFromSettings(Settings, new Vector3(x + 0.2f, y - 0.2f, z));
             _counterRight.lineSpacing = -26;
             _counterRight.fontSize = PluginConfig.Instance.FigureFontSize;
-            _counterRight.text = _pPCalculator.PredictedPP.ToString("0.00") + "PP";
+            _counterRight.text = _pPCalculator.HighestPredictedPP.ToString("0.00") + "PP";
             AddStarInfo(_counterRight);
             _counterRight.alignment = TextAlignmentOptions.TopLeft;
 
@@ -69,6 +69,11 @@ namespace PredictStarNumberCounter
         private async Task AddStarInfo(TMP_Text counter)
         {
             double predictedStarNumber = await _star.GetPredictedStarNumber();
+            if (predictedStarNumber == _star.ErrorStarNumber || predictedStarNumber == _star.SkipStarNumber)
+            {
+                counter.text = "-";
+                return;
+            }
             counter.text += "(★" + predictedStarNumber.ToString("0.00p") + ")";
         }
 
@@ -80,6 +85,11 @@ namespace PredictStarNumberCounter
         private async void ChangeNowPP()
         {
             double nowPP = await _pPCalculator.CalculatePP(Convert.ToDouble(_relativeScoreAndImmediateRank.relativeScore));
+            if(nowPP == _pPCalculator.NoPredictedPP)
+            {
+                _counterLeft.text = "-";
+                return;
+            }
             _counterLeft.text = nowPP.ToString("0.00") + "PP";
         }
 
