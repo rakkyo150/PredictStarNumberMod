@@ -1,12 +1,6 @@
-﻿using HarmonyLib;
-using Newtonsoft.Json;
-using PredictStarNumberMod.Configuration;
+﻿using PredictStarNumberMod.Configuration;
 using PredictStarNumberMod.Map;
 using SiraUtil.Affinity;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Threading.Tasks;
-using static PredictStarNumberMod.Map.MapDataContainer;
 
 /// <summary>
 /// See https://github.com/pardeike/Harmony/wiki for a full reference on Harmony.

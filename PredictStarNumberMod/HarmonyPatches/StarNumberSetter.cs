@@ -44,7 +44,7 @@ namespace PredictStarNumberMod.HarmonyPatches
         [AffinityPrefix]
         protected void Prefix()
         {
-            _predictedStarNumberMonitor.ClearPredictedStarNumberChanged();
+            _predictedStarNumberMonitor.StartChangingPredictedStarNumber();
         }
 
         /// <summary>
@@ -73,9 +73,7 @@ namespace PredictStarNumberMod.HarmonyPatches
             }
 
             if (!PluginConfig.Instance.Enable)
-            {
-                if (_star.PredictedStarNumber == _star.SkipStarNumber) return;
-                
+            {                
                 // In oreder to hide overlay
                 _star.ChangePredictedStarNumber(_star.SkipStarNumber);
                 return;
@@ -106,9 +104,9 @@ namespace PredictStarNumberMod.HarmonyPatches
             // 非同期で書き換えをする必要がある
             async Task wrapper(TextMeshProUGUI[] fields)
             {
-                await _predictedStarNumberMonitor.AwaitUntilPredictedStarNumberChanged();
+                double predictedStarNumber = await _star.GetPredictedStarNumber();
                 
-                if (_star.PredictedStarNumber == _star.ErrorStarNumber)
+                if (predictedStarNumber == _star.ErrorStarNumber)
                 {
                     if (isRankedMap)
                     {
@@ -120,7 +118,7 @@ namespace PredictStarNumberMod.HarmonyPatches
                     return;
                 }
 
-                string predictedStarNumberString = _star.PredictedStarNumber.ToString("0.00");
+                string predictedStarNumberString = predictedStarNumber.ToString("0.00");
 #if DEBUG
                 Plugin.Log.Info(predictedStarNumberString);
 #endif

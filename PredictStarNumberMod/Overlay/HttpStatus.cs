@@ -1,6 +1,5 @@
 ﻿using HttpSiraStatus.Enums;
 using HttpSiraStatus.Interfaces;
-using PredictStarNumberMod.HarmonyPatches;
 using System;
 using Zenject;
 using PluginConfig = PredictStarNumberMod.Configuration.PluginConfig;
@@ -21,7 +20,7 @@ namespace PredictStarNumberMod.Overlay
             _star = star;
         }
 
-        public void OnChangedPredictedStarNumber()
+        public void OnChangedPredictedStarNumber(double predictedStarNumber)
         {
 #if Debug
             Plugin.Log.Info("PredictedStarNumber changed");
@@ -37,10 +36,10 @@ namespace PredictStarNumberMod.Overlay
                 return;
             }
             
-            _statusManager.OtherJSON["PredictedStar"] = _star.PredictedStarNumber;
+            _statusManager.OtherJSON["PredictedStar"] = predictedStarNumber;
             _statusManager.EmitStatusUpdate(ChangedProperty.Other, BeatSaberEvent.Other);
 
-            if (_star.PredictedStarNumber == _star.SkipStarNumber)
+            if (predictedStarNumber == _star.SkipStarNumber)
                 this.overlayStatus = OverlayStatus.Hide;
             else this.overlayStatus = OverlayStatus.Visible;
         }

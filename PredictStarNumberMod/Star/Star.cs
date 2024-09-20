@@ -11,11 +11,11 @@ namespace PredictStarNumberMod.Star
 {
     public class Star
     {
-        public double PredictedStarNumber { get; set; } = double.MinValue;
+        private double predictedStarNumber = double.MinValue;
         internal double SkipStarNumber { get; } = -1.0;
         internal double ErrorStarNumber { get; } = -10.0;
 
-        public Action ChangedPredictedStarNumber;
+        public Action<double> ChangedPredictedStarNumber;
 
         private readonly Model.Model _model;
         private readonly MapDataContainer _mapDataContainer;
@@ -28,11 +28,20 @@ namespace PredictStarNumberMod.Star
             _predictedStarNumberMonitor = predictedStarNumberMonitor;
         }
 
+        public async Task<double> GetPredictedStarNumber()
+        {
+            await _predictedStarNumberMonitor.AwaitUntilPredictedStarNumberChangedCompletly();
+            return this.predictedStarNumber;
+        } 
+
         internal void ChangePredictedStarNumber(double newPredictedStarNumber)
         {
-            this.PredictedStarNumber = newPredictedStarNumber;
-            _predictedStarNumberMonitor.ChangePredictedStarNumberMonitorTrue();
-            this.ChangedPredictedStarNumber?.Invoke();
+            this.predictedStarNumber = newPredictedStarNumber;
+            _predictedStarNumberMonitor.FinishChangingPredictedStarNumber();
+            this.ChangedPredictedStarNumber?.Invoke(this.predictedStarNumber);
+#if DEBUG
+            Plugin.Log.Info("predictedStarNumber Changed ");
+#endif
         }
 
         internal async Task<double> PredictStarNumber()
@@ -104,7 +113,6 @@ namespace PredictStarNumberMod.Star
                 Plugin.Log.Info("Minus TryCount");
                 _predictedStarNumberMonitor.MinusTryPredictingCount();
             }
-
         }
     }
 }

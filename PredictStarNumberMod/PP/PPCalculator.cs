@@ -1,6 +1,4 @@
-﻿using PredictStarNumberMod.Star;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -38,7 +36,8 @@ namespace PredictStarNumberMod.PP
                 SetCurve(_curveDownloader.Curves);
             }
 
-            double rawPP = _star.PredictedStarNumber * this.DefaultStarMultipllier;
+            double predictedStarNumber = await _star.GetPredictedStarNumber();
+            double rawPP = predictedStarNumber * this.DefaultStarMultipllier;
 
             double multiplier = this.Multiplier;
             if (failed)
