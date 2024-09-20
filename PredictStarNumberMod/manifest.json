@@ -7,7 +7,6 @@
   "description": "",
   "gameVersion": "1.36.2",
   "dependsOn": {
-    "BSIPA": "^4.2.0",
-    "BetterSongList": ">0.2.0" 
+    "BSIPA": "^4.2.0"
   }
 }

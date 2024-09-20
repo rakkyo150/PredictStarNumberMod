@@ -1,4 +1,5 @@
-﻿using PredictStarNumberMod.PP;
+﻿using IPA.Loader;
+using PredictStarNumberMod.PP;
 using SiraUtil.Affinity;
 using System;
 using System.Threading;
@@ -56,6 +57,7 @@ namespace PredictStarNumberMod.HarmonyPatches
         [AffinityAfter(new string[] { "com.Idlebob.BeatSaber.ScorePercentage" })]
         [AffinityPatch(typeof(LevelStatsView), nameof(LevelStatsView.ShowStats))]
         [AffinityPrefix]
+        // Entrypoint
         protected void Postfix(ref TextMeshProUGUI ____highScoreText, BeatmapKey beatmapKey, PlayerData playerData)
         {
             wrapper(____highScoreText, beatmapKey, playerData);
@@ -63,25 +65,45 @@ namespace PredictStarNumberMod.HarmonyPatches
 
         private async Task wrapper(TextMeshProUGUI field,BeatmapKey beatmapKey, PlayerData playerData)
         {
+            try
+            {
+                _star.ChangePredictedStarNumber(await _star.PredictStarNumber());
+            }
+            catch(Exception ex)
+            {
+                Plugin.Log.Error(ex);
+                _star.ChangePredictedStarNumber(_star.ErrorStarNumber);
+            }
+
             double percentage = await GetPercentage(beatmapKey, playerData);
+
+            RectTransform rectTransform = field.GetComponent<RectTransform>();
+
             if (percentage == neverClearPercentage)
             {
                 _pPCalculator.PredictedPP = _pPCalculator.NoPredictedPP;
+                if (PluginManager.GetPlugin("BetterSongList") != null) return;
+
+                // 短い間隔でマップを変更した場合、最終実行時の結果を残すため
+                field.text = field.text.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)[0];
+                if (_star.PredictedStarNumber == _star.SkipStarNumber
+                    || _star.PredictedStarNumber == _star.ErrorStarNumber)
+                    return;
+                field.text += "\n(★" + _star.PredictedStarNumber.ToString("0.00") + ")";
+                if (rectTransform.anchoredPosition == originalAnchoredPosition)
+                    rectTransform.anchoredPosition = modifiedAnchordPostion;
                 return;
             }
 
             try
             {
-                while (!_predictedStarNumberMonitor.PredictedStarNumberChanged)
-                {
-                    await Task.Delay(200);
-                }
+                await _predictedStarNumberMonitor.AwaitUntilPredictedStarNumberChanged();
 
                 _pPCalculator.PredictedPP = await _pPCalculator.CalculatePP(percentage);
 #if DEBUG
                 Plugin.Log.Info(_pPCalculator.PredictedPP.ToString());
 #endif
-                RectTransform rectTransform = field.GetComponent<RectTransform>();
+
                 // 短い間隔でマップを変更した場合、最終実行時の結果を残すため
                 field.text = field.text.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)[0];
                 
@@ -89,7 +111,14 @@ namespace PredictStarNumberMod.HarmonyPatches
                     || _star.PredictedStarNumber == _star.ErrorStarNumber)
                     return;
 
-                field.text += "\n(" + _pPCalculator.PredictedPP.ToString("0.00") + "PP)";
+                if(PluginManager.GetPlugin("BetterSongList") == null)
+                {
+                    field.text += "\n(★" + _star.PredictedStarNumber.ToString("0.00") + " | " + _pPCalculator.PredictedPP.ToString("0.00") + "PP)";
+                }
+                else
+                {
+                    field.text += "\n(" + _pPCalculator.PredictedPP.ToString("0.00") + "PP)";
+                }
                 if (rectTransform.anchoredPosition == originalAnchoredPosition)
                     rectTransform.anchoredPosition = modifiedAnchordPostion;
                 Plugin.Log.Info(field.text);

@@ -1,27 +1,23 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Zenject;
 
 namespace PredictStarNumberMod.PP
 {
-    public class PredictedStarNumberMonitor : IInitializable, IDisposable
+    public class PredictedStarNumberMonitor
     {
-        public bool PredictedStarNumberChanged { get; private set; } = false;
+        private bool PredictedStarNumberChanged = false;
+        private int tryPredictingCount = 0;
 
-        private bool _disposedValue;
-
-        private readonly Star.Star _star;
-
-        public PredictedStarNumberMonitor(Star.Star star)
+        public async Task AwaitUntilPredictedStarNumberChanged()
         {
-            _star = star;
+            while (!this.PredictedStarNumberChanged || tryPredictingCount != 0)
+            {
+                await Task.Delay(200);
+            }
         }
-
-        public void Initialize()
-        {
-            _star.ChangedPredictedStarNumber += OnChangedPredictedStarNumber;
-        }
-
-        private void OnChangedPredictedStarNumber()
+        
+        internal void ChangePredictedStarNumberMonitorTrue()
         {
             this.PredictedStarNumberChanged = true;
         }
@@ -31,23 +27,14 @@ namespace PredictStarNumberMod.PP
             this.PredictedStarNumberChanged = false;
         }
 
-        protected virtual void Dispose(bool disposing)
+        internal void PlusTryPredictingCount()
         {
-            if (!this._disposedValue)
-            {
-                if (disposing)
-                {
-                    _star.ChangedPredictedStarNumber -= OnChangedPredictedStarNumber;
-                }
-                this._disposedValue = true;
-            }
+            tryPredictingCount++;
         }
 
-        public void Dispose()
+        internal void MinusTryPredictingCount()
         {
-            // このコードを変更しないでください。クリーンアップ コードを 'Dispose(bool disposing)' メソッドに記述します
-            this.Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+            tryPredictingCount--;
         }
     }
 }

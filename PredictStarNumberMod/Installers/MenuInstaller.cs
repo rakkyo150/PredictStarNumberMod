@@ -1,4 +1,5 @@
-﻿using PredictStarNumberMod.HarmonyPatches;
+﻿using IPA.Loader;
+using PredictStarNumberMod.HarmonyPatches;
 using PredictStarNumberMod.PP;
 using Zenject;
 
@@ -9,10 +10,11 @@ namespace PredictStarNumberMod.Installers
         public override void InstallBindings()
         {
             Container.BindInterfacesAndSelfTo<SettingViewController>().FromNewComponentAsViewController().AsSingle();
-            Container.BindInterfacesTo<LevelStatsViewPatch>().AsSingle();
             Container.BindInterfacesTo<MapDataGetter>().AsSingle();
+            Container.BindInterfacesTo<LevelStatsViewPatch>().AsSingle();
+
+            if (PluginManager.GetPlugin("BetterSongList") == null) return;
             Container.BindInterfacesTo<StarNumberSetter>().AsSingle();
-            Container.BindInterfacesAndSelfTo<PredictedStarNumberMonitor>().AsSingle();
         }
     }
 }

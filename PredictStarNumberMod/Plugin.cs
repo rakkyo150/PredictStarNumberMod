@@ -91,19 +91,6 @@ namespace PredictStarNumberMod
         {
             try
             {
-                // https://wikiwiki.jp/rimworld/Modding#oad391ac
-
-                //TypeByNameであれば、アクセス制限を無視してTypeを読み込むことが出来る。
-                /*
-                var type = AccessTools.TypeByName("BetterSongList.HarmonyPatches.UI.ExtraLevelParams");
-                if (type != null)
-                {
-                    var original = AccessTools.Method(type, "Postfix");
-                    var postfix = new HarmonyMethod(AccessTools.Method(typeof(StarNumberSetter), "Postfix"));
-                    harmony.Patch(original, null, postfix, null);
-                }
-                Plugin.Log?.Debug("Applying Harmony patches.");
-                */
                 harmony.PatchAll(Assembly.GetExecutingAssembly());
             }
             catch (Exception ex)
