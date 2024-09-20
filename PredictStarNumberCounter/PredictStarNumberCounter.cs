@@ -79,7 +79,7 @@ namespace PredictStarNumberCounter
                 counter.text = "-";
                 return;
             }
-            counter.text = bestPredictedPP.ToString("0.00") + "PP(★" + predictedStarNumber.ToString("0.00p") + ")";
+            counter.text = bestPredictedPP.ToString("0.00") + "PP(★" + predictedStarNumber.ToString("0.00") + ")";
         }
 
         public void OnNoteCut(NoteData data, NoteCutInfo info)
