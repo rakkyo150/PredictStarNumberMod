@@ -1,14 +1,10 @@
 ﻿using BetterSongList.HarmonyPatches.UI;
-using Microsoft.ML.OnnxRuntime;
-using Microsoft.ML.OnnxRuntime.Tensors;
-using Newtonsoft.Json;
 using PredictStarNumberMod.Configuration;
 using PredictStarNumberMod.Map;
+using PredictStarNumberMod.PP;
 using SiraUtil.Affinity;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 using TMPro;
 
@@ -17,19 +13,21 @@ using TMPro;
 /// </summary>
 namespace PredictStarNumberMod.HarmonyPatches
 {
+    // LevelStatsViewPatchよりこっちが先に実行されるが、BetterSongListの依存を脱する必要がある
+    // そのため、LevelStatsViewPatchにエントリーポイントを移行
     public class StarNumberSetter : IAffinity
     {
         private readonly MapDataContainer _mapDataContainer;
         private readonly Star.Star _star;
-        private readonly Model.Model _model;
+        private readonly PredictedStarNumberMonitor _predictedStarNumberMonitor;
 
         private float originalFontSize = float.MinValue;
 
-        public StarNumberSetter(MapDataContainer mapDataContainer, Star.Star star, Model.Model model)
+        public StarNumberSetter(MapDataContainer mapDataContainer, Star.Star star, PredictedStarNumberMonitor predictedStarNumberMonitor)
         {
             _mapDataContainer = mapDataContainer;
             _star = star;
-            _model = model;
+            _predictedStarNumberMonitor = predictedStarNumberMonitor;
         }
 
         public class LatestRelease
@@ -40,6 +38,13 @@ namespace PredictStarNumberMod.HarmonyPatches
         public class DownloadUrl
         {
             public string browser_download_url;
+        }
+
+        [AffinityPatch(typeof(ExtraLevelParams), nameof(ExtraLevelParams.Postfix))]
+        [AffinityPrefix]
+        protected void Prefix()
+        {
+            _predictedStarNumberMonitor.ClearPredictedStarNumberChanged();
         }
 
         /// <summary>
@@ -101,26 +106,10 @@ namespace PredictStarNumberMod.HarmonyPatches
             // 非同期で書き換えをする必要がある
             async Task wrapper(TextMeshProUGUI[] fields)
             {
-                try
+                await _predictedStarNumberMonitor.AwaitUntilPredictedStarNumberChanged();
+                
+                if (_star.PredictedStarNumber == _star.ErrorStarNumber)
                 {
-                    _star.ChangePredictedStarNumber(await PredictStarNumber());
-                    
-                    string predictedStarNumberString = _star.PredictedStarNumber.ToString("0.00");
-#if DEBUG
-                    Plugin.Log.Info(predictedStarNumberString);
-#endif
-                    if (isRankedMap)
-                    {
-                        SetPredictedStarNumberForRankedMap(fields, predictedStarNumberString);
-                        return;
-                    }
-
-                    fields[1].text = $"({predictedStarNumberString})";
-                }
-                catch (Exception ex)
-                {
-                    Plugin.Log.Error(ex);
-                    _star.ChangePredictedStarNumber(_star.ErrorStarNumber);
                     if (isRankedMap)
                     {
                         SetPredictedStarNumberForRankedMap(fields, "Error");
@@ -128,87 +117,24 @@ namespace PredictStarNumberMod.HarmonyPatches
                         return;
                     }
                     fields[1].text = "(Error)";
-                }
-            }
-
-            async Task<double> PredictStarNumber()
-            {
-#if DEBUG
-                var sw = new System.Diagnostics.Stopwatch();
-                sw.Start();
-#endif
-                if (_model.ModelByte.Length == 1)
-                {
-                    _model.ModelByte = await GetModel();
+                    return;
                 }
 
-                _mapDataContainer.Data = await _mapDataContainer.GetMapData(_mapDataContainer.MapHash, _mapDataContainer.BeatmapDifficulty, _mapDataContainer.Characteristic);
-                if (_model.Session == null)
-                {
-                    _model.Session = new InferenceSession(_model.ModelByte);
-                }
-                string inputNoneName = _model.Session?.InputMetadata.First().Key;
-                double[] data = new double[15]
-                {
-                    _mapDataContainer.Data.Bpm,
-                    _mapDataContainer.Data.Duration,
-                    _mapDataContainer.Data.Difficulty,
-                    _mapDataContainer.Data.SageScore,
-                    _mapDataContainer.Data.Njs,
-                    _mapDataContainer.Data.Offset,
-                    _mapDataContainer.Data.Notes,
-                    _mapDataContainer.Data.Bombs,
-                    _mapDataContainer.Data.Obstacles,
-                    _mapDataContainer.Data.Nps,
-                    _mapDataContainer.Data.Events,
-                    _mapDataContainer.Data.Chroma,
-                    _mapDataContainer.Data.Errors,
-                    _mapDataContainer.Data.Warns,
-                    _mapDataContainer.Data.Resets
-                };
+                string predictedStarNumberString = _star.PredictedStarNumber.ToString("0.00");
 #if DEBUG
-                var innodedims = _model.Session?.InputMetadata.First().Value.Dimensions;
-                Plugin.Log.Info(string.Join(", ",innodedims));
-                Plugin.Log.Info(string.Join(". ", data));
+                Plugin.Log.Info(predictedStarNumberString);
 #endif
-                var inputTensor = new DenseTensor<double>(data, new int[] { 1, data.Length }, false);  // let's say data is fed into the Tensor objects
-                List<NamedOnnxValue> inputs = new List<NamedOnnxValue>()
-                    {
-                        NamedOnnxValue.CreateFromTensor<double>(inputNoneName, inputTensor)
-                    };
-                using (var results = _model.Session?.Run(inputs))
+                if (isRankedMap)
                 {
-#if DEBUG
-                    Plugin.Log.Info(string.Join(". ", results));
-                    sw.Stop();
-                    Plugin.Log.Info(sw.Elapsed.ToString());
-#endif
-                    return results.First().AsTensor<double>()[0];
+                    SetPredictedStarNumberForRankedMap(fields, predictedStarNumberString);
+                    return;
                 }
-            }
 
-            async Task<byte[]> GetModel()
-            {
-                HttpClient client = new HttpClient();
-                var request = new HttpRequestMessage(HttpMethod.Get, _model.ModelAssetEndpoint);
-                request.Headers.Add("User-Agent", "C# App");
-                var response = await client.SendAsync(request);
-                string assetString = await response.Content.ReadAsStringAsync();
-                LatestRelease latestRelease = JsonConvert.DeserializeObject<LatestRelease>(assetString);
-                string modelDownloadUrl = latestRelease.assets[2].browser_download_url;
-#if DEBUG
-                Plugin.Log.Info(modelDownloadUrl);
-#endif
-                request = new HttpRequestMessage(HttpMethod.Get, modelDownloadUrl);
-                request.Headers.Add("User-Agent", "C# App");
-                var modelResponse = await client.SendAsync(request);
-                client.Dispose();
-                request.Dispose();
-                return await modelResponse.Content.ReadAsByteArrayAsync();
+                fields[1].text = $"({predictedStarNumberString})";
             }
         }
 
-        private static void SetPredictedStarNumberForRankedMap(TextMeshProUGUI[] fields, string predictedStarNumber)
+        private void SetPredictedStarNumberForRankedMap(TextMeshProUGUI[] fields, string predictedStarNumber)
         {
             fields[1].text = fields[1].text.Replace("...", "");
             // 初回は２回呼び出されるみたいなので
@@ -219,7 +145,7 @@ namespace PredictStarNumberMod.HarmonyPatches
             fields[1].fontSize = 3.2f;
         }
 
-        private static bool IsRankedMap(TextMeshProUGUI[] fields)
+        private bool IsRankedMap(TextMeshProUGUI[] fields)
         {
             return Double.TryParse(fields[1].text, out _);
         }

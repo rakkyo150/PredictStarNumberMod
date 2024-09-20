@@ -15,6 +15,7 @@ namespace PredictStarNumberMod.Installers
             Container.Bind<Star.Star>().AsSingle();
             Container.Bind<Model.Model>().AsSingle();
             Container.Bind<PPCalculator>().AsSingle();
+            Container.Bind<PredictedStarNumberMonitor>().AsSingle();
 
             // すべてのModのEnable後に実行されるっぽいので、よほどのことが無ければこれで依存関係問題ないはず
             if (PluginManager.GetPlugin("HttpSiraStatus") == null) return;
