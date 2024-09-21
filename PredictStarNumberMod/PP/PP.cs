@@ -16,6 +16,8 @@ namespace PredictStarNumberMod.PP
         internal double DefaultStarMultipllier { get; } = 42.11;
         internal double Multiplier { get; } = 1;
 
+        public Action<double> ChangedBestPredictedPP;
+
         private readonly Star.Star _star;
         private readonly CurveDownloader _curveDownloader;
         private readonly BestPredictedPPMonitor _bestPredictedPPMonitor;
@@ -37,6 +39,7 @@ namespace PredictStarNumberMod.PP
         {
             this.bestPredictedPP = newPredictedPP;
             _bestPredictedPPMonitor.FinishChangingBestPredictedPP();
+            this.ChangedBestPredictedPP?.Invoke(this.bestPredictedPP);
 #if DEBUG
             Plugin.Log.Info("predictedPP Changed ");
 #endif

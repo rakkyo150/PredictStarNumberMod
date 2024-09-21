@@ -11,13 +11,16 @@ namespace PredictStarNumberMod.Overlay
         private bool _disposedValue;
         private readonly IStatusManager _statusManager;
         private readonly Star.Star _star;
+        private readonly PP.PP _pP;
 
-        private OverlayStatus overlayStatus;
+        private OverlayStatus predictedStarOverlayStatus;
+        private OverlayStatus bestPredictedPPOverlayStatus;
 
-        public HttpStatus(IStatusManager statusManager, Star.Star star)
+        public HttpStatus(IStatusManager statusManager, Star.Star star, PP.PP pP)
         {
             _statusManager = statusManager;
             _star = star;
+            _pP = pP;
         }
 
         public void OnChangedPredictedStarNumber(double predictedStarNumber)
@@ -27,12 +30,12 @@ namespace PredictStarNumberMod.Overlay
 #endif      
             if (!PluginConfig.Instance.Overlay)
             {
-                if (this.overlayStatus == OverlayStatus.Hide) return;
+                if (this.predictedStarOverlayStatus == OverlayStatus.Hide) return;
 
                 _statusManager.OtherJSON["PredictedStar"] = _star.SkipStarNumber;
                 _statusManager.EmitStatusUpdate(ChangedProperty.Other, BeatSaberEvent.Other);
 
-                this.overlayStatus = OverlayStatus.Hide;
+                this.predictedStarOverlayStatus = OverlayStatus.Hide;
                 return;
             }
             
@@ -40,13 +43,38 @@ namespace PredictStarNumberMod.Overlay
             _statusManager.EmitStatusUpdate(ChangedProperty.Other, BeatSaberEvent.Other);
 
             if (predictedStarNumber == _star.SkipStarNumber)
-                this.overlayStatus = OverlayStatus.Hide;
-            else this.overlayStatus = OverlayStatus.Visible;
+                this.predictedStarOverlayStatus = OverlayStatus.Hide;
+            else this.predictedStarOverlayStatus = OverlayStatus.Visible;
+        }
+
+        public void OnChangedBestPredictedPP(double bestPP)
+        {
+#if Debug
+            Plugin.Log.Info("PredictedStarNumber changed");
+#endif      
+            if (!PluginConfig.Instance.Overlay)
+            {
+                if (this.bestPredictedPPOverlayStatus == OverlayStatus.Hide) return;
+
+                _statusManager.OtherJSON["BestPredictedPP"] = _pP.NoPredictedPP;
+                _statusManager.EmitStatusUpdate(ChangedProperty.Other, BeatSaberEvent.Other);
+
+                this.bestPredictedPPOverlayStatus = OverlayStatus.Hide;
+                return;
+            }
+
+            _statusManager.OtherJSON["BestPredictedPP"] = bestPP;
+            _statusManager.EmitStatusUpdate(ChangedProperty.Other, BeatSaberEvent.Other);
+
+            if (bestPP == _pP.NoPredictedPP)
+                this.bestPredictedPPOverlayStatus = OverlayStatus.Hide;
+            else this.bestPredictedPPOverlayStatus = OverlayStatus.Visible;
         }
 
         public void Initialize()
         {
             _star.ChangedPredictedStarNumber += OnChangedPredictedStarNumber;
+            _pP.ChangedBestPredictedPP += OnChangedBestPredictedPP;
         }
 
         protected virtual void Dispose(bool disposing)
@@ -56,6 +84,7 @@ namespace PredictStarNumberMod.Overlay
                 if (disposing)
                 {
                     _star.ChangedPredictedStarNumber -= OnChangedPredictedStarNumber;
+                    _pP.ChangedBestPredictedPP -= OnChangedBestPredictedPP;
                 }
                 this._disposedValue = true;
             }
