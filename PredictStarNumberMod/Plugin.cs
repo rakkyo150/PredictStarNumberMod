@@ -41,6 +41,7 @@ namespace PredictStarNumberMod
             Configuration.PluginConfig.Instance = conf.Generated<Configuration.PluginConfig>();
             injector.Install<MenuInstaller>(Location.Menu);
             injector.Install<AppInstaller>(Location.App);
+            injector.Install<PlayerInstaller>(Location.Player);
             Plugin.Log?.Debug("Config loaded");
         }
         #endregion
