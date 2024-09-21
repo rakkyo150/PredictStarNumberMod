@@ -1,28 +1,44 @@
 ﻿const skip_star = -1;
 const error_star = -10
+const no_predicted_pp = -1;
 
 let predicted_star = null;
 let predicted_star_visibility = null;
 
+let best_predicted_pp = null;
+let best_predicted_pp_visibility = null;
+
 ex_hello.push((data) => {
 	predicted_star = document.getElementById("predicted_star");
-	if (predicted_star == null) {
-		console.error("predicted_star not found");
-		return;
+	best_predicted_pp = document.getElementById("best_predicted_pp");
+	if (predicted_star != null) {
+		console.error("predicted_star found");
+		predicted_star.innerText = "";
 	}
-	predicted_star.innerText = "";
 
-	const predicted_star_group = document.getElementById("predicted_star_group");
-	if (predicted_star_group == null) return;
-	predicted_star_group.style.visibility = "hidden";
+	if (best_predicted_pp != null)
+	{
+		console.error("best_predicted_pp found");
+        best_predicted_pp.innerText = "";
+	}
+
+	const predicted_star_mod_group = document.getElementById("predicted_star_mod_group");
+	if (predicted_star_mod_group == null) return;
+	predicted_star_mod_group.style.visibility = "hidden";
 });
 
 ex_other.push((data) => {
 	if (typeof data.other === "undefined") {
 		hidePredictedStarVisibility();
+		hideBestPredictedPPVisibility();
 		return;
 	}
 
+	setPredictedStar(data);
+	setBestPredictedPP(data);
+});
+
+function setPredictedStar(data) {
 	if (typeof data.other.PredictedStar === "undefined") {
 		hidePredictedStarVisibility();
 		return;
@@ -32,6 +48,7 @@ ex_other.push((data) => {
 
 	if (data.other.PredictedStar == skip_star) {
 		hidePredictedStarVisibility();
+
 		return;
 	}
 
@@ -42,13 +59,40 @@ ex_other.push((data) => {
 	}
 
 	predicted_star.innerText = data.other.PredictedStar.toFixed(2);
-});
+}
+
+function setBestPredictedPP(data) {
+	if (typeof data.other.BestPredictedPP === "undefined") {
+		hideBestPredictedPPVisibility();
+		return;
+	}
+
+	if (best_predicted_pp == null) return;
+
+	if (data.other.BestPredictedPP == no_predicted_pp) {
+		hideBestPredictedPPVisibility();
+
+		return;
+	}
+
+	checkBestPredictedPPVisible();
+
+	best_predicted_pp.innerText = data.other.BestPredictedPP.toFixed(2);
+}
 
 function hidePredictedStarVisibility() {
 	if (predicted_star_visibility == null) predicted_star_visibility = document.getElementById("predicted_star_visibility");
 
 	if (predicted_star_visibility != null) predicted_star_visibility.style.visibility = "hidden";
 	else predicted_star.style.visibility == "hidden"
+}
+
+function hideBestPredictedPPVisibility()
+{
+	if (best_predicted_pp_visibility == null) predicted_star_visibility = document.getElementById("best_predicted_pp_visibility");
+
+	if (best_predicted_pp_visibility != null) predicted_star_visibility.style.visibility = "hidden";
+	else best_predicted_pp.style.visibility == "hidden"
 }
 
 function checkPredictedStarVisible() {
@@ -58,4 +102,14 @@ function checkPredictedStarVisible() {
 	if (predicted_star_visibility == null) return;
 
 	if (predicted_star_visibility.style.visibility == "hidden") predicted_star_visibility.style.visibility = "visible";
+}
+
+function checkBestPredictedPPVisible()
+{
+    if (best_predicted_pp.style.visibility == "hidden") best_predicted_pp.style.visibility = "visible";
+
+    if (best_predicted_pp_visibility == null) best_predicted_pp_visibility = document.getElementById("best_predicted_pp_visibility");
+    if (best_predicted_pp_visibility == null) return;
+
+    if (best_predicted_pp_visibility.style.visibility == "hidden") best_predicted_pp_visibility.style.visibility = "visible";
 }
