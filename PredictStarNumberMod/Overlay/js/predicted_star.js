@@ -62,7 +62,6 @@ function setPredictedStar(data) {
 
 	if (data.other.PredictedStar == skip_star) {
 		hidePredictedStarVisibility();
-
 		return;
 	}
 
@@ -70,6 +69,7 @@ function setPredictedStar(data) {
 
 	if (data.other.PredictedStar == error_star) {
 		predicted_star.innerText = "?";
+		return;
 	}
 
 	predicted_star.innerText = data.other.PredictedStar.toFixed(2);
@@ -104,7 +104,6 @@ function setNowPredictedPP(data) {
 
 	if (data.other.NowPredictedPP == no_predicted_pp) {
 		hideNowPredictedPPVisibility();
-
 		return;
 	}
 
