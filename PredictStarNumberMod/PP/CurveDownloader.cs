@@ -60,7 +60,9 @@ namespace PredictStarNumberMod.PP
                 return default;
             }
             string jsonString = await result.Content.ReadAsStringAsync();
+#if DEBUG
             Plugin.Log?.Info(jsonString);
+#endif
             return JsonConvert.DeserializeObject<T>(jsonString);
         }
 

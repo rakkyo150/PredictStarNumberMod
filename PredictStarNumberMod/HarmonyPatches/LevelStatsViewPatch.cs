@@ -86,8 +86,9 @@ namespace PredictStarNumberMod.HarmonyPatches
 #if DEBUG
             Plugin.Log.Info("GetPercentage : " + percentage.ToString());
 #endif
-
-            if (percentage == neverClearPercentage)
+            // クリアなしの処理は早期にここで切れる
+            // そのため、クリアありの処理でクリアなしの処理の前に実行された処理に関して、後にfield.textでも確認が必要
+            if (percentage == neverClearPercentage || field.text == "-")
             {
                 _pP.SetBestPredictedPP(_pP.NoPredictedPP);
                 if (PluginManager.GetPlugin("BetterSongList") != null) return;
@@ -107,6 +108,9 @@ namespace PredictStarNumberMod.HarmonyPatches
                 Plugin.Log.Info($"GetPercentage before awaiting _star.GetLatestPredictedStarNumber() : {percentage}");
 #endif
                 double predictedStarNumber = await _star.GetLatestPredictedStarNumber();
+#if DEBUG
+                Plugin.Log.Info($"GetPercentage after awaiting _star.GetLatestPredictedStarNumber() : {percentage}");
+#endif
 
                 DeleteSecondAndSubsequentLines(field);
                 if (predictedStarNumber == _star.SkipStarNumber
@@ -119,16 +123,32 @@ namespace PredictStarNumberMod.HarmonyPatches
                 Plugin.Log.Info($"GetPercentage before awaiting _pP.SetBestPredictedPP(await _pP.CalculateBestPP(percentage)) : {percentage}");
 #endif
                 _pP.SetBestPredictedPP(await _pP.CalculateBestPP(percentage));
+#if DEBUG
+                Plugin.Log.Info($"GetPercentage after awaiting _pP.SetBestPredictedPP(await _pP.CalculateBestPP(percentage)) : {percentage}");
+#endif
 
 #if DEBUG
                 Plugin.Log.Info($"GetPercentage before awaiting _pP.GetLatestBestPredictedPP : {percentage}");
-                Plugin.Log.Info("Start awaiting _pP.GetLatestBestPredictedPP");
 #endif
                 double bestPredictedPP = await _pP.GetLatestBestPredictedPP();
 #if DEBUG
-                Plugin.Log.Info("bestPredictedPP after awaiting _pP.GetLatestBestPredictedPP : " + bestPredictedPP.ToString());
                 Plugin.Log.Info($"GetPercentage after awaiting _pP.GetLatestBestPredictedPP : {percentage}");
 #endif
+                
+                // 上述したとおり、非同期処理のawait待ちのせいでずれる場合があるので、ここでも確認
+                if(field.text == "-")
+                {
+                    _pP.SetBestPredictedPP(_pP.NoPredictedPP);
+                    if (PluginManager.GetPlugin("BetterSongList") != null) return;
+                    DeleteSecondAndSubsequentLines(field);
+                    if (predictedStarNumber == _star.SkipStarNumber
+                        || predictedStarNumber == _star.ErrorStarNumber)
+                        return;
+                    field.text += "\n(★" + predictedStarNumber.ToString("0.00") + ")";
+                    ChangeFieldHeightForSecondAndSubsequentLines(rectTransform);
+                    return;
+                }
+                
                 DeleteSecondAndSubsequentLines(field);
                 if (PluginManager.GetPlugin("BetterSongList") == null)
                 {
@@ -158,7 +178,7 @@ namespace PredictStarNumberMod.HarmonyPatches
                 rectTransform.anchoredPosition = modifiedAnchordPostion;
         }
 
-        // 高速で譜面切り替えると変な値が返ってくる
+        // 高速で譜面切り替えると、譜面が完全に切り替わっていない瞬間は変な値が返ってくる
         private async Task<double> GetPercentage(BeatmapKey beatmapKey, PlayerData playerData)
         {
             if (playerData == null) return neverClearPercentage;
