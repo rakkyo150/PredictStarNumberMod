@@ -41,7 +41,7 @@ namespace PredictStarNumberMod.PP
             _bestPredictedPPMonitor.FinishChangingBestPredictedPP();
             this.ChangedBestPredictedPP?.Invoke(this.bestPredictedPP);
 #if DEBUG
-            Plugin.Log.Info("predictedPP Changed ");
+            Plugin.Log.Info($"predictedPP Changed : newPredictedPP=={newPredictedPP}");
 #endif
         }
 

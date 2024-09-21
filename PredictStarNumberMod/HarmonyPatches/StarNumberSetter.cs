@@ -120,7 +120,7 @@ namespace PredictStarNumberMod.HarmonyPatches
 
                 string predictedStarNumberString = predictedStarNumber.ToString("0.00");
 #if DEBUG
-                Plugin.Log.Info(predictedStarNumberString);
+                Plugin.Log.Info("predictedStarNumberString : " + predictedStarNumberString);
 #endif
                 if (isRankedMap)
                 {
