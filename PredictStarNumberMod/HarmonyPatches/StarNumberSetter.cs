@@ -23,6 +23,8 @@ namespace PredictStarNumberMod.HarmonyPatches
 
         private float originalFontSize = float.MinValue;
 
+        private string sSRankStarNumber = string.Empty;
+
         public StarNumberSetter(MapDataContainer mapDataContainer, Star.Star star, PredictedStarNumberMonitor predictedStarNumberMonitor)
         {
             _mapDataContainer = mapDataContainer;
@@ -92,6 +94,7 @@ namespace PredictStarNumberMod.HarmonyPatches
 
             if (isRankedMap)
             {
+                sSRankStarNumber = ___fields[1].text;
                 ___fields[1].text += "...";
             }
             else
@@ -135,11 +138,8 @@ namespace PredictStarNumberMod.HarmonyPatches
         private void SetPredictedStarNumberForRankedMap(TextMeshProUGUI[] fields, string predictedStarNumber)
         {
             fields[1].text = fields[1].text.Replace("...", "");
-            // 初回は２回呼び出されるみたいなので
-            if (!fields[1].text.Contains("(") && !fields[1].text.Contains(")"))
-            {
-                fields[1].text += $"({predictedStarNumber})";
-            }
+            // 高速譜面変更でScoreSaberのランク情報書き消えるので
+            fields[1].text = $"{sSRankStarNumber}({predictedStarNumber})";
             fields[1].fontSize = 3.2f;
         }
 

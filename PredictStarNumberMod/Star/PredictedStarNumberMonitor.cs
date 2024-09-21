@@ -16,13 +16,13 @@ namespace PredictStarNumberMod.Star
 
             while (!(this.predictedStarNumberChangeCompleted && tryPredictingCount == 0))
             {
-                await Task.Delay(100);
+                await Task.Delay(50);
             }
 
             // 複数の処理が同時に終了するときに、呼び出された順に終了するようにする
             while (myProcess != 0)
             {
-                await Task.Delay(100);
+                await Task.Delay(50);
                 myProcess--;
             }
 
