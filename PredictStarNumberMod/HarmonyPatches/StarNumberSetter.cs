@@ -117,7 +117,7 @@ namespace PredictStarNumberMod.HarmonyPatches
                         fields[1].fontSize = 3.3f;
                         return;
                     }
-                    fields[1].text = "(Error)";
+                    SetPredictedStarNumberForUnrankedMap(fields, "Error");
                     return;
                 }
 
@@ -131,7 +131,7 @@ namespace PredictStarNumberMod.HarmonyPatches
                     return;
                 }
 
-                fields[1].text = $"({predictedStarNumberString})";
+                SetPredictedStarNumberForUnrankedMap(fields, predictedStarNumberString);
             }
         }
 
@@ -141,6 +141,13 @@ namespace PredictStarNumberMod.HarmonyPatches
             // 高速譜面変更でScoreSaberのランク情報書き消えるので
             fields[1].text = $"{sSRankStarNumber}({predictedStarNumber})";
             fields[1].fontSize = 3.2f;
+        }
+
+        private void SetPredictedStarNumberForUnrankedMap(TextMeshProUGUI[] fields, string predictedStarNumber)
+        {
+            fields[1].text = $"({predictedStarNumber})";
+            // 高速譜面変更でFontSizeが変わるので
+            fields[1].fontSize = originalFontSize;
         }
 
         private bool IsRankedMap(TextMeshProUGUI[] fields)
