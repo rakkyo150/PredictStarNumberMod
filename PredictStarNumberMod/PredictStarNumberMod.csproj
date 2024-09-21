@@ -183,6 +183,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <Compile Include="HarmonyPatches\LevelStatsViewPatch.cs" />
+    <Compile Include="Installers\PlayerInstaller.cs" />
     <Compile Include="Map\MapDataContainer.cs" />
     <Compile Include="Model\Model.cs" />
     <Compile Include="Overlay\HttpStatus.cs" />
@@ -195,6 +196,7 @@
     </None>
     <Compile Include="Plugin.cs" />
     <Compile Include="Configuration\PluginConfig.cs" />
+    <Compile Include="Overlay\NowPP.cs" />
     <Compile Include="PP\PP.cs" />
     <Compile Include="PP\CurveDownloader.cs" />
     <Compile Include="PP\BestPredictedPPMonitor.cs" />
