@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
-using PredictStarNumberMod.PP;
 
 namespace PredictStarNumberMod.Star
 {
@@ -40,7 +39,7 @@ namespace PredictStarNumberMod.Star
             _predictedStarNumberMonitor.FinishChangingPredictedStarNumber();
             this.ChangedPredictedStarNumber?.Invoke(this.predictedStarNumber);
 #if DEBUG
-            Plugin.Log.Info("predictedStarNumber Changed ");
+            Plugin.Log.Info($"predictedStarNumber Changed : newPredictedStarNumber=={newPredictedStarNumber}");
 #endif
         }
 
@@ -85,8 +84,8 @@ namespace PredictStarNumberMod.Star
                 };
 #if DEBUG
                 var innodedims = _model.Session?.InputMetadata.First().Value.Dimensions;
-                Plugin.Log.Info(string.Join(", ", innodedims));
-                Plugin.Log.Info(string.Join(". ", data));
+                // Plugin.Log.Info(string.Join(", ", innodedims));
+                // Plugin.Log.Info(string.Join(". ", data));
 #endif
                 var inputTensor = new DenseTensor<double>(data, new int[] { 1, data.Length }, false);  // let's say data is fed into the Tensor objects
                 List<NamedOnnxValue> inputs = new List<NamedOnnxValue>()
@@ -96,7 +95,7 @@ namespace PredictStarNumberMod.Star
                 using (var results = _model.Session?.Run(inputs))
                 {
 #if DEBUG
-                    Plugin.Log.Info(string.Join(". ", results));
+                    // Plugin.Log.Info(string.Join(". ", results));
                     sw.Stop();
                     Plugin.Log.Info("Elapsed : " + sw.Elapsed.ToString());
 #endif
@@ -110,7 +109,6 @@ namespace PredictStarNumberMod.Star
             }
             finally
             {
-                Plugin.Log.Info("Minus TryCount");
                 _predictedStarNumberMonitor.MinusTryPredictingCount();
             }
         }

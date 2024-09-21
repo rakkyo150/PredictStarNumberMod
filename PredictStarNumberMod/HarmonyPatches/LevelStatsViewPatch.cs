@@ -17,7 +17,7 @@ namespace PredictStarNumberMod.HarmonyPatches
     {
         private Vector2 originalAnchoredPosition = new Vector2((float)12.00, (float)-3.80);
         private Vector2 modifiedAnchordPostion = new Vector2((float)12.00, (float)-5.30);
-        private double neverClearPercentage = 0;
+        private double neverClearPercentage = -1;
 
         private RectTransform rectTransform;
 
@@ -83,6 +83,10 @@ namespace PredictStarNumberMod.HarmonyPatches
 
             double percentage = await GetPercentage(beatmapKey, playerData);
 
+#if DEBUG
+            Plugin.Log.Info("GetPercentage : " + percentage.ToString());
+#endif
+
             if (percentage == neverClearPercentage)
             {
                 _pP.SetBestPredictedPP(_pP.NoPredictedPP);
@@ -99,6 +103,9 @@ namespace PredictStarNumberMod.HarmonyPatches
 
             try
             {
+#if DEBUG
+                Plugin.Log.Info($"GetPercentage before awaiting _star.GetLatestPredictedStarNumber() : {percentage}");
+#endif
                 double predictedStarNumber = await _star.GetLatestPredictedStarNumber();
 
                 DeleteSecondAndSubsequentLines(field);
@@ -108,13 +115,22 @@ namespace PredictStarNumberMod.HarmonyPatches
                     _pP.SetBestPredictedPP(_pP.NoPredictedPP);
                     return;
                 }
+#if DEBUG
+                Plugin.Log.Info($"GetPercentage before awaiting _pP.SetBestPredictedPP(await _pP.CalculateBestPP(percentage)) : {percentage}");
+#endif
                 _pP.SetBestPredictedPP(await _pP.CalculateBestPP(percentage));
-                
+
+#if DEBUG
+                Plugin.Log.Info($"GetPercentage before awaiting _pP.GetLatestBestPredictedPP : {percentage}");
+                Plugin.Log.Info("Start awaiting _pP.GetLatestBestPredictedPP");
+#endif
                 double bestPredictedPP = await _pP.GetLatestBestPredictedPP();
 #if DEBUG
-                Plugin.Log.Info(bestPredictedPP.ToString());
+                Plugin.Log.Info("bestPredictedPP after awaiting _pP.GetLatestBestPredictedPP : " + bestPredictedPP.ToString());
+                Plugin.Log.Info($"GetPercentage after awaiting _pP.GetLatestBestPredictedPP : {percentage}");
 #endif
-                if(PluginManager.GetPlugin("BetterSongList") == null)
+                DeleteSecondAndSubsequentLines(field);
+                if (PluginManager.GetPlugin("BetterSongList") == null)
                 {
                     field.text += "\n(★" + predictedStarNumber.ToString("0.00") + " | " + bestPredictedPP.ToString("0.00") + "PP)";
                 }
@@ -123,7 +139,6 @@ namespace PredictStarNumberMod.HarmonyPatches
                     field.text += "\n(" + bestPredictedPP.ToString("0.00") + "PP)";
                 }
                 ChangeFieldHeightForSecondAndSubsequentLines(rectTransform);
-                Plugin.Log.Info(field.text);
             }
             catch (Exception e)
             {
@@ -143,6 +158,7 @@ namespace PredictStarNumberMod.HarmonyPatches
                 rectTransform.anchoredPosition = modifiedAnchordPostion;
         }
 
+        // 高速で譜面切り替えると変な値が返ってくる
         private async Task<double> GetPercentage(BeatmapKey beatmapKey, PlayerData playerData)
         {
             if (playerData == null) return neverClearPercentage;
