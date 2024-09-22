@@ -7,10 +7,10 @@
 ```html
 <div class="performance_group" id="now_predicted_pp_group">
     <span id="now_predicted_pp_visibility">
-        <span class="text">（</span>
+        <span class="text">(</span>
         <span class="text" id="now_predicted_pp">0</span>
         <span class="subtext">pp</span>
-        <span class="text">）</span>
+        <span class="text">)</span>
     </span>
 </div>
 ```
@@ -20,10 +20,10 @@
 <div>
     <span id="predicted_star_mod_group">
         <span id="predicted_star_visibility">
-            <span>（★</span><span id="predicted_star">0.0</span><span>）</span>
+            <span>(★</span><span id="predicted_star">0.0</span><span>)</span>
         </span>
         <span id="best_predicted_pp_visibility">
-            <span>（</span><span id="best_predicted_pp">0.0</span><span>pp）</span>
+            <span>(</span><span id="best_predicted_pp">0.0</span><span>pp)</span>
         </span>
     </span>
 </div>
