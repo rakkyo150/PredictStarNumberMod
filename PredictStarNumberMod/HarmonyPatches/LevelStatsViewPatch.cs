@@ -68,7 +68,9 @@ namespace PredictStarNumberMod.HarmonyPatches
             {
                 try
                 {
+#if DEBUG
                     Plugin.Log.Info("Start AddQueuePredictingStarNumber by LevelStatsViewPatch");
+#endif
                     await _star.AddQueuePredictingAndSettingStarNumber();
                 }
                 catch (Exception ex)
@@ -112,13 +114,17 @@ namespace PredictStarNumberMod.HarmonyPatches
 
                 try
                 {
+#if DEBUG
                     Plugin.Log.Info($"Start AddQueueCalculatingAndSettingBestPP by LevelStatsViewPatch : {percentage}");
+#endif
                     // 高速で譜面切り替えると、percentageをここで引数としては使うと、なぜかその時点で前の譜面の値に切り替わる
                     // そこで、_pPに排他制御を効かせてもらうことで、この問題を解決
                     double test = await _pP.AddQueueCalculatingAndSettingBestPP();
+#if DEBUG
                     Plugin.Log.Info($"test : {test}");
+#endif
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Plugin.Log.Error(ex);
                     _pP.SetBestPredictedPP(_pP.NoPredictedPP);
@@ -128,7 +134,9 @@ namespace PredictStarNumberMod.HarmonyPatches
 #endif
                 
                 double bestPredictedPP = await _pP.GetBestPredictedPP();
+#if DEBUG
                 Plugin.Log.Info($"bestPredictedPP : {bestPredictedPP}");
+#endif
 
                 // 上述したとおり、非同期処理のawait待ち先の処理が後にずれる場合があるので、ここでも確認
                 if (field.text == "-")
