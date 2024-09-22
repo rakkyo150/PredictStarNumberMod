@@ -1,10 +1,24 @@
 ﻿using BeatSaberMarkupLanguage.Attributes;
 using PredictStarNumberCounter.Configuration;
+using System.Collections.Generic;
 
 namespace PredictStarNumberCounter.Views
 {
     internal class ViewController
     {
+        [UIValue("Display")]
+        public PluginConfig.DisplayType Display
+        {
+            get => PluginConfig.Instance.Display;
+            set
+            {
+                PluginConfig.Instance.Display = value;
+            }
+        }
+
+        [UIValue("DisplayType")]
+        public List<object> DisplayType => new List<object> { PluginConfig.DisplayType.All, PluginConfig.DisplayType.StarOnly, PluginConfig.DisplayType.NowPPOnly, PluginConfig.DisplayType.BestPPOnly, PluginConfig.DisplayType.StarAndNowPP, PluginConfig.DisplayType.StarAndBestPP, PluginConfig.DisplayType.NowPPAndBestPP };
+
         [UIValue("DecimalPrecision")]
         public int DecimalPrecision
         {
@@ -22,6 +36,16 @@ namespace PredictStarNumberCounter.Views
             set
             {
                 PluginConfig.Instance.EnableLabel = value;
+            }
+        }
+
+        [UIValue("LabelText")]
+        public string LabelText
+        {
+            get => PluginConfig.Instance.LabelText;
+            set
+            {
+                PluginConfig.Instance.LabelText = value;
             }
         }
 
