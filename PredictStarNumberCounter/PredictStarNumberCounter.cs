@@ -67,13 +67,13 @@ namespace PredictStarNumberCounter
 
         private async Task AddPPAndStarInfo(TMP_Text counter)
         {
-            double predictedStarNumber = await _star.GetLatestPredictedStarNumber();
+            double predictedStarNumber = await _star.GetPredictedStarNumber();
             if (predictedStarNumber == _star.ErrorStarNumber || predictedStarNumber == _star.SkipStarNumber)
             {
                 counter.text = "-";
                 return;
             }
-            double bestPredictedPP = await _pP.GetLatestBestPredictedPP();
+            double bestPredictedPP = await _pP.GetBestPredictedPP();
             if(bestPredictedPP == _pP.NoPredictedPP)
             {
                 counter.text = "-";

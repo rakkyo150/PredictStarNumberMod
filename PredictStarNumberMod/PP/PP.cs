@@ -1,48 +1,69 @@
-﻿using System;
+﻿using PredictStarNumberMod.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PredictStarNumberMod.PP
 {
     public class PP
     {
-        private double bestPredictedPP;
-        public double NoPredictedPP { get; } = -1;
-
-        internal List<Point> Curve { get; set; }
-        internal double[] Slopes { get; set; }
-
         internal double DefaultStarMultipllier { get; } = 42.11;
         internal double Multiplier { get; } = 1;
 
+        public double NoPredictedPP { get; } = -1;
+
+        // 共有メモリ
+        private double bestPredictedPP;
+        private double accuracy;
+        internal List<Point> Curve { get; set; }
+        internal double[] Slopes { get; set; }
+
         public Action<double> ChangedBestPredictedPP;
+        //　共有メモリここまで
+
+        private readonly Object lockObject = new Object();
+        private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
+        private readonly OrderedAsyncTaskQueue<double> _orderedAsyncTaskQueue = new OrderedAsyncTaskQueue<double>();
 
         private readonly Star.Star _star;
         private readonly CurveDownloader _curveDownloader;
-        private readonly BestPredictedPPMonitor _bestPredictedPPMonitor;
 
-        public PP(Star.Star star, CurveDownloader curveDownloader, BestPredictedPPMonitor predictedPPMonitor)
+        public PP(Star.Star star, CurveDownloader curveDownloader)
         {
             _star = star;
             _curveDownloader = curveDownloader;
-            _bestPredictedPPMonitor = predictedPPMonitor;
-        }
-
-        public async Task<double> GetLatestBestPredictedPP()
-        {
-            await _bestPredictedPPMonitor.AwaitUntilBestPredictedPPChangedCompletly();
-            return this.bestPredictedPP;
         }
 
         internal void SetBestPredictedPP(double newPredictedPP)
         {
-            this.bestPredictedPP = newPredictedPP;
-            _bestPredictedPPMonitor.FinishChangingBestPredictedPP();
-            this.ChangedBestPredictedPP?.Invoke(this.bestPredictedPP);
+            lock (lockObject)
+            {
+                this.bestPredictedPP = newPredictedPP;
+                this.ChangedBestPredictedPP?.Invoke(this.bestPredictedPP);
 #if DEBUG
-            Plugin.Log.Info($"predictedPP Changed : newPredictedPP=={newPredictedPP}");
+                Plugin.Log.Info($"predictedPP Changed : newPredictedPP=={newPredictedPP}");
 #endif
+            }
+        }
+
+        internal void SetAccuracy(double newAccuracy)
+        {
+            lock (lockObject)
+            {
+                this.accuracy = newAccuracy;
+            }
+        }
+
+        public async Task<double> GetBestPredictedPP()
+        {
+            await _orderedAsyncTaskQueue.WaitUntilQueueEmptyAsync();
+            
+            lock (lockObject)
+            {
+                return this.bestPredictedPP;
+            }
         }
 
         public async Task<double> CalculatePP(double accuracy, bool failed = false)
@@ -59,7 +80,7 @@ namespace PredictStarNumberMod.PP
                     SetCurve(_curveDownloader.Curves);
                 }
 
-                double predictedStarNumber = await _star.GetLatestPredictedStarNumber();
+                double predictedStarNumber = await _star.GetPredictedStarNumber();
 
                 if (predictedStarNumber == _star.SkipStarNumber
                                    || predictedStarNumber == _star.ErrorStarNumber)
@@ -83,19 +104,39 @@ namespace PredictStarNumberMod.PP
                 return this.NoPredictedPP;
             }
         }
-        
-        internal async Task<double> CalculateBestPP(double accuracy, bool failed = false)
+
+        public async Task<double> AddQueueCalculatingAndSettingBestPP(bool failed = false)
         {
-            _bestPredictedPPMonitor.PlusTryCalculatingCount();
-            double bestPP = await this.CalculatePP(accuracy, failed);
-            _bestPredictedPPMonitor.MinusTryCalculatingCount();
-            return bestPP;
+            return await _orderedAsyncTaskQueue.StartTaskAsync(async () =>
+            {
+                double bestPP = await CalculateBestPP(failed);
+                SetBestPredictedPP(bestPP);
+                return bestPP;
+            });
+        }
+
+
+        internal async Task<double> CalculateBestPP(bool failed = false)
+        {
+            await semaphore.WaitAsync();
+            try
+            {
+                double bestPP = await this.CalculatePP(this.accuracy, failed);
+                return bestPP;
+            }
+            finally
+            {
+                semaphore.Release();
+            }
         }
 
         private void SetCurve(Curves curves)
         {
-            this.Curve = curves.ScoreSaber.standardCurve;
-            this.Slopes = this.GetSlopes();
+            lock (lockObject)
+            {
+                this.Curve = curves.ScoreSaber.standardCurve;
+                this.Slopes = this.GetSlopes();
+            }
         }
 
         internal double[] GetSlopes()

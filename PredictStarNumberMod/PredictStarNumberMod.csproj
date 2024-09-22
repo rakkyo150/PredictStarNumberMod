@@ -199,9 +199,8 @@
     <Compile Include="Overlay\NowPP.cs" />
     <Compile Include="PP\PP.cs" />
     <Compile Include="PP\CurveDownloader.cs" />
-    <Compile Include="PP\BestPredictedPPMonitor.cs" />
-    <Compile Include="Star\PredictedStarNumberMonitor.cs" />
     <Compile Include="Star\Star.cs" />
+    <Compile Include="Utilities\OrderedAsyncTaskQueue.cs" />
     <Compile Include="Views\SettingViewController.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
