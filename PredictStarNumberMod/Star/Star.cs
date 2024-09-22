@@ -15,14 +15,12 @@ namespace PredictStarNumberMod.Star
         public double SkipStarNumber { get; } = -1.0;
         public double ErrorStarNumber { get; } = -10.0;
 
-        // 共有メモリ
         private double predictedStarNumber = double.MinValue;
         private string previoudMapHash = string.Empty;
         private BeatmapDifficulty preciousBeatmapDifficulty;
         private BeatmapCharacteristicSO previousCharacteristic;
 
         public Action<double> ChangedPredictedStarNumber;
-        //　共有メモリここまで
 
         private readonly Object lockObject = new Object();
         private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);

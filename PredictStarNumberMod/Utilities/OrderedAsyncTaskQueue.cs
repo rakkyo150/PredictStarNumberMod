@@ -12,7 +12,7 @@ namespace PredictStarNumberMod.Utilities
         private readonly ConcurrentQueue<Func<Task<T>>> queue = new ConcurrentQueue<Func<Task<T>>>();
         private readonly ConcurrentQueue<Func<Task<T>>> queue_waiting_until_queue_empty = new ConcurrentQueue<Func<Task<T>>>();
 
-        public async Task<T> StartTaskAsync(Func<Task<T>> action)
+        internal async Task<T> StartTaskAsync(Func<Task<T>> action)
         {
             queue.Enqueue(async () =>
             {
@@ -47,7 +47,7 @@ namespace PredictStarNumberMod.Utilities
             return default;
         }
 
-        public async Task WaitUntilQueueEmptyAsync()
+        internal async Task WaitUntilQueueEmptyAsync()
         {
             await StartWaitingUntilQueueEmptyAsync(async () =>
             {
@@ -57,9 +57,6 @@ namespace PredictStarNumberMod.Utilities
                 }
                 return default;
             });
-#if DEBUG
-            Plugin.Log.Info("Queue is empty");
-#endif
         }
 
         private async Task<T> StartWaitingUntilQueueEmptyAsync(Func<Task<T>> action)

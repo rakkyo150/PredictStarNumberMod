@@ -97,7 +97,9 @@ namespace PredictStarNumberMod.HarmonyPatches
             // 非同期で書き換えをする必要がある
             async Task wrapper(TextMeshProUGUI[] fields)
             {
+#if DEBUG
                 Plugin.Log.Info("Start AddQueuePredictingStarNumber by BetterSongList");
+#endif
                 double predictedStarNumber = await _star.AddQueuePredictingAndSettingStarNumber();
                 
                 if (predictedStarNumber == _star.ErrorStarNumber)

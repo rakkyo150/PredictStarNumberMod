@@ -14,17 +14,16 @@ namespace PredictStarNumberMod.PP
 
         public double NoPredictedPP { get; } = -1;
 
-        // 共有メモリ
         private double bestPredictedPP;
         private double accuracy;
         internal List<Point> Curve { get; set; }
         internal double[] Slopes { get; set; }
 
         public Action<double> ChangedBestPredictedPP;
-        //　共有メモリここまで
 
         private readonly Object lockObject = new Object();
         private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim semaphore_for_calculate = new SemaphoreSlim(1);
         private readonly OrderedAsyncTaskQueue<double> _orderedAsyncTaskQueue = new OrderedAsyncTaskQueue<double>();
 
         private readonly Star.Star _star;
@@ -70,11 +69,15 @@ namespace PredictStarNumberMod.PP
         {
             try
             {
+                await semaphore_for_calculate.WaitAsync();
+
                 if (this.Curve == null || this.Slopes == null)
                 {
                     while (!_curveDownloader.CurvesDownloadFinished)
                     {
+#if DEBUG
                         Plugin.Log?.Info("Waiting for CurveDownloader to initialize");
+#endif
                         await Task.Delay(300);
                     }
                     SetCurve(_curveDownloader.Curves);
@@ -102,6 +105,10 @@ namespace PredictStarNumberMod.PP
             {
                 Plugin.Log.Error(ex);
                 return this.NoPredictedPP;
+            }
+            finally
+            {
+                semaphore_for_calculate.Release();
             }
         }
 
