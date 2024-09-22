@@ -49,7 +49,7 @@ namespace PredictStarNumberMod.Utilities
 
         public async Task WaitUntilQueueEmptyAsync()
         {
-            await StartTaskAsyncForWaitingUntilQueueEmptyAsync(async () =>
+            await StartWaitingUntilQueueEmptyAsync(async () =>
             {
                 while (!queue.IsEmpty)
                 {
@@ -62,7 +62,7 @@ namespace PredictStarNumberMod.Utilities
 #endif
         }
 
-        private async Task<T> StartTaskAsyncForWaitingUntilQueueEmptyAsync(Func<Task<T>> action)
+        private async Task<T> StartWaitingUntilQueueEmptyAsync(Func<Task<T>> action)
         {
             queue_waiting_until_queue_empty.Enqueue(async () =>
             {

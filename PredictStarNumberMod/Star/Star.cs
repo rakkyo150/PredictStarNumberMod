@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using PredictStarNumberMod.Utilities;
+using System.Threading;
 
 namespace PredictStarNumberMod.Star
 {
@@ -16,11 +17,15 @@ namespace PredictStarNumberMod.Star
 
         // 共有メモリ
         private double predictedStarNumber = double.MinValue;
+        private string previoudMapHash = string.Empty;
+        private BeatmapDifficulty preciousBeatmapDifficulty;
+        private BeatmapCharacteristicSO previousCharacteristic;
 
         public Action<double> ChangedPredictedStarNumber;
         //　共有メモリここまで
 
         private readonly Object lockObject = new Object();
+        private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
         private readonly OrderedAsyncTaskQueue<double> _orderedAsyncTaskQueue = new OrderedAsyncTaskQueue<double>();
 
         private readonly Model.Model _model;
@@ -66,12 +71,31 @@ namespace PredictStarNumberMod.Star
 
         private async Task<double> PredictStarNumber()
         {
+#if DEBUG
+            var sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
+#endif
             try
             {
+                await semaphore.WaitAsync();
+                try
+                {
+                    if (previoudMapHash == _mapDataContainer.MapHash && preciousBeatmapDifficulty == _mapDataContainer.BeatmapDifficulty
+                        && previousCharacteristic == _mapDataContainer.Characteristic)
+                    {
 #if DEBUG
-                var sw = new System.Diagnostics.Stopwatch();
-                sw.Start();
+                        Plugin.Log.Info("Same data");
 #endif
+                        return this.predictedStarNumber;
+                    }
+                    previoudMapHash = _mapDataContainer.MapHash;
+                    preciousBeatmapDifficulty = _mapDataContainer.BeatmapDifficulty;
+                    previousCharacteristic = _mapDataContainer.Characteristic;
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
 
                 if (_model.ModelByte.Length == 1)
                 {
@@ -101,6 +125,7 @@ namespace PredictStarNumberMod.Star
                 _mapDataContainer.Data.Warns,
                 _mapDataContainer.Data.Resets
                 };
+
 #if DEBUG
                 var innodedims = _model.Session?.InputMetadata.First().Value.Dimensions;
                 // Plugin.Log.Info(string.Join(", ", innodedims));
@@ -113,11 +138,6 @@ namespace PredictStarNumberMod.Star
                     };
                 using (var results = _model.Session?.Run(inputs))
                 {
-#if DEBUG
-                    // Plugin.Log.Info(string.Join(". ", results));
-                    sw.Stop();
-                    Plugin.Log.Info("Elapsed : " + sw.Elapsed.ToString());
-#endif
                     return results.First().AsTensor<double>()[0];
                 }
             }
@@ -125,6 +145,14 @@ namespace PredictStarNumberMod.Star
             {
                 Plugin.Log.Error(ex);
                 return this.ErrorStarNumber;
+            }
+            finally
+            {
+#if DEBUG
+                // Plugin.Log.Info(string.Join(". ", results));
+                sw.Stop();
+                Plugin.Log.Info("Elapsed : " + sw.Elapsed.ToString());
+#endif
             }
         }
     }

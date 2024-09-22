@@ -61,6 +61,11 @@
       <SpecificVersion>False</SpecificVersion>
       <Publicize>True</Publicize>
     </Reference>
+    <Reference Include="BGLib.UnityExtension">
+      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\BGLib.UnityExtension.dll</HintPath>
+      <Private>False</Private>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
     <Reference Include="BSML">
       <HintPath>$(BeatSaberDir)\Plugins\BSML.dll</HintPath>
       <Private>False</Private>
