@@ -7,8 +7,10 @@ namespace PredictStarNumberCounter.Configuration
     internal class PluginConfig
     {
         public static PluginConfig Instance { get; set; }
+        public virtual DisplayType Display { get; set; } = DisplayType.All;
         public virtual int DecimalPrecision { get; set; } = 2;
         public virtual bool EnableLabel { get; set; } = true;
+        public virtual string LabelText { get; set; } = "Predicted Star Number";
         public virtual float LabelFontSize { get; set; } = 3f;
         public virtual float FigureFontSize { get; set; } = 4f;
         public virtual float OffsetX { get; set; } = 0f;
@@ -45,5 +47,7 @@ namespace PredictStarNumberCounter.Configuration
             this.OffsetY = other.OffsetY;
             this.OffsetZ = other.OffsetZ;
         }
+
+        public enum DisplayType { All, StarOnly, NowPPOnly, BestPPOnly, StarAndNowPP, StarAndBestPP, NowPPAndBestPP }
     }
 }

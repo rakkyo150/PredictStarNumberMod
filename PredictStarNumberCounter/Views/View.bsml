@@ -1,6 +1,8 @@
 ﻿<vertical xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='https://monkeymanboy.github.io/BSML-Docs/ https://raw.githubusercontent.com/monkeymanboy/BSML-Docs/gh-pages/BSMLSchema.xsd' spacing='1' horizontal-fit='PreferredSize' vertical-fit='PreferredSize'>
 	<text text='*If you want to adujust the values more accurately, do via json' align='Center' font-size='4' color='grey'></text>
+	<dropdown-list-setting text='Display' apply-on-change='true' value='Display' options='DisplayType'/>
 	<increment-setting text="Decimal Precision" value="DecimalPrecision" integer-only="true" min="1" max="5" increment="1" apply-on-change="true"></increment-setting>
+	<string-setting text='Label Text' value='LabelText' apply-on-change='true' bind-value='true'/>
 	<checkbox-setting text="Enable Label" value="EnableLabel"  apply-on-change="true"></checkbox-setting>
 	<increment-setting text="Lable Font Size" value="LabelFontSize"  min="0" increment="1" apply-on-change="true"></increment-setting>
 	<increment-setting text="Figure Font Size" value="FigureFontSize"  min="0" increment="1" apply-on-change="true"></increment-setting>

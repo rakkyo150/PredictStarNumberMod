@@ -18,8 +18,11 @@ namespace PredictStarNumberCounter
         private readonly PP _pP;
         private readonly RelativeScoreAndImmediateRankCounter _relativeScoreAndImmediateRank;
 
-        private TMP_Text _counterLeft;
-        private TMP_Text _counterRight;
+        private TMP_Text _counter;
+
+        private string nowPPString = "-";
+        private string bestPredictedPPString = "-";
+        private string predictedStarNumberString = "-";
 
         float x = PluginConfig.Instance.OffsetX;
         float y = PluginConfig.Instance.OffsetY;
@@ -42,44 +45,55 @@ namespace PredictStarNumberCounter
             if (PluginConfig.Instance.EnableLabel)
             {
                 var label = CanvasUtility.CreateTextFromSettings(Settings, new Vector3(x, y, z));
-                label.text = "Predict Star Number Counter";
+                label.text = PluginConfig.Instance.LabelText;
                 label.fontSize = PluginConfig.Instance.LabelFontSize;
             }
 
-            Vector3 leftOffset = new Vector3(x, y - 0.2f, z);
-            TextAlignmentOptions leftAlign = TextAlignmentOptions.Top;
-
-            _counterRight = CanvasUtility.CreateTextFromSettings(Settings, new Vector3(x + 0.2f, y - 0.2f, z));
-            _counterRight.lineSpacing = -26;
-            _counterRight.fontSize = PluginConfig.Instance.FigureFontSize;
-            AddPPAndStarInfo(_counterRight);
-            _counterRight.alignment = TextAlignmentOptions.TopLeft;
-
-            leftOffset = new Vector3(x - 0.2f, y - 0.2f, z);
-            leftAlign = TextAlignmentOptions.TopRight;
-
-            _counterLeft = CanvasUtility.CreateTextFromSettings(Settings, leftOffset);
-            _counterLeft.lineSpacing = -26;
-            _counterLeft.fontSize = PluginConfig.Instance.FigureFontSize;
-            _counterLeft.text = "0.00PP";
-            _counterLeft.alignment = leftAlign;
+            _counter = CanvasUtility.CreateTextFromSettings(Settings, new Vector3(x, y - 0.2f, z));
+            _counter.lineSpacing = -26;
+            _counter.fontSize = PluginConfig.Instance.FigureFontSize;
+            AddPPAndStarInfo();
+            _counter.alignment = TextAlignmentOptions.Top;
         }
 
-        private async Task AddPPAndStarInfo(TMP_Text counter)
+        private async Task AddPPAndStarInfo()
         {
             double predictedStarNumber = await _star.GetPredictedStarNumber();
+            predictedStarNumberString = predictedStarNumber.ToString("0.00");
             if (predictedStarNumber == _star.ErrorStarNumber || predictedStarNumber == _star.SkipStarNumber)
             {
-                counter.text = "-";
-                return;
+                predictedStarNumberString = "-";
             }
             double bestPredictedPP = await _pP.GetBestPredictedPP();
-            if(bestPredictedPP == _pP.NoPredictedPP)
+            bestPredictedPPString = bestPredictedPP.ToString("0.00") + "PP";
+            if (bestPredictedPP == _pP.NoPredictedPP)
             {
-                counter.text = "-";
-                return;
+                bestPredictedPPString = "-";
+            }   
+            _counter.text = MakeCounterText();
+        }
+
+        private string MakeCounterText()
+        {
+            switch (PluginConfig.Instance.Display)
+            {
+                case PluginConfig.DisplayType.All:
+                    return predictedStarNumberString + "★" + "\n" + nowPPString + " | " + bestPredictedPPString;
+                case PluginConfig.DisplayType.StarOnly:
+                    return predictedStarNumberString + "★";
+                case PluginConfig.DisplayType.NowPPOnly:
+                    return nowPPString;
+                case PluginConfig.DisplayType.BestPPOnly:
+                    return bestPredictedPPString;
+                case PluginConfig.DisplayType.StarAndNowPP:
+                    return predictedStarNumberString + "★" + "\n" + nowPPString;
+                case PluginConfig.DisplayType.StarAndBestPP:
+                    return predictedStarNumberString + "★" + "\n" + bestPredictedPPString;
+                case PluginConfig.DisplayType.NowPPAndBestPP:
+                    return nowPPString + " | " + bestPredictedPPString;
+                default:
+                    return predictedStarNumberString + "★" + "\n" + nowPPString + " | " + bestPredictedPPString;
             }
-            counter.text = bestPredictedPP.ToString("0.00") + "PP(★" + predictedStarNumber.ToString("0.00") + ")";
         }
 
         public void OnNoteCut(NoteData data, NoteCutInfo info)
@@ -90,12 +104,12 @@ namespace PredictStarNumberCounter
         private async void ChangeNowPP()
         {
             double nowPP = await _pP.CalculatePP(Convert.ToDouble(_relativeScoreAndImmediateRank.relativeScore));
-            if(nowPP == _pP.NoPredictedPP)
+            nowPPString = nowPP.ToString("0.00") + "PP";
+            if (nowPP == _pP.NoPredictedPP)
             {
-                _counterLeft.text = "-";
-                return;
+                nowPPString = "-";
             }
-            _counterLeft.text = nowPP.ToString("0.00") + "PP";
+            _counter.text = MakeCounterText();
         }
 
         public void OnNoteMiss(NoteData data)
