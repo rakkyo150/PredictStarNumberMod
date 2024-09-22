@@ -23,19 +23,15 @@ namespace PredictStarNumberMod.HarmonyPatches
 
         private readonly PP.PP _pP;
         private readonly Star.Star _star;
-        private readonly PredictedStarNumberMonitor _predictedStarNumberMonitor;
-        private readonly BestPredictedPPMonitor _bestPredictedPPMonitor;
         private readonly BeatmapLevelLoader _beatmapLevelLoader;
         private readonly StandardLevelDetailViewController _standardLevelDetailViewController;
         private readonly BeatmapLevelsEntitlementModel _beatmapLevelsEntitlementModel;
         private readonly BeatmapDataLoader _beatmapDataLoader = new BeatmapDataLoader();
 
-        public LevelStatsViewPatch(PP.PP pP, Star.Star star, PredictedStarNumberMonitor predictedStarNumberMonitor, BestPredictedPPMonitor bestPredictedPPMonitor, CurveDownloader curveDownloader, BeatmapLevelLoader beatmapLevelLoader, StandardLevelDetailViewController standardLevelDetailViewController, BeatmapLevelsEntitlementModel beatmapLevelsEntitlementModel)
+        public LevelStatsViewPatch(PP.PP pP, Star.Star star, BeatmapLevelLoader beatmapLevelLoader, StandardLevelDetailViewController standardLevelDetailViewController, BeatmapLevelsEntitlementModel beatmapLevelsEntitlementModel)
         {
             _pP = pP;
             _star = star;
-            _predictedStarNumberMonitor = predictedStarNumberMonitor;
-            _bestPredictedPPMonitor = bestPredictedPPMonitor;
             _beatmapLevelLoader = beatmapLevelLoader;
             _standardLevelDetailViewController = standardLevelDetailViewController;
             _beatmapLevelsEntitlementModel = beatmapLevelsEntitlementModel;
@@ -45,9 +41,6 @@ namespace PredictStarNumberMod.HarmonyPatches
         [AffinityPrefix]
         protected void Prefix(ref TextMeshProUGUI ____highScoreText)
         {
-            // 前回実行時に譜面データはあるがプレイヤーのクリアデータがない場合、trueになったままなので
-            _predictedStarNumberMonitor.StartChangingPredictedStarNumber();
-            _bestPredictedPPMonitor.StartChangingBestPredictedPP();
             rectTransform = ____highScoreText.GetComponent<RectTransform>();
             if (rectTransform.anchoredPosition == modifiedAnchordPostion)
                 rectTransform.anchoredPosition = originalAnchoredPosition;
@@ -71,18 +64,21 @@ namespace PredictStarNumberMod.HarmonyPatches
 
         private async Task wrapper(TextMeshProUGUI field, BeatmapKey beatmapKey, PlayerData playerData)
         {
-            try
+            if (PluginManager.GetPlugin("BetterSongList") == null)
             {
-                _star.SetPredictedStarNumber(await _star.PredictStarNumber());
+                try
+                {
+                    Plugin.Log.Info("Start AddQueuePredictingStarNumber by LevelStatsViewPatch");
+                    await _star.AddQueuePredictingAndSettingStarNumber();
+                }
+                catch (Exception ex)
+                {
+                    Plugin.Log.Error(ex);
+                    _star.SetPredictedStarNumber(_star.ErrorStarNumber);
+                }
             }
-            catch(Exception ex)
-            {
-                Plugin.Log.Error(ex);
-                _star.SetPredictedStarNumber(_star.ErrorStarNumber);
-            }
-
             double percentage = await GetPercentage(beatmapKey, playerData);
-
+            _pP.SetAccuracy(percentage);
 #if DEBUG
             Plugin.Log.Info("GetPercentage : " + percentage.ToString());
 #endif
@@ -93,7 +89,7 @@ namespace PredictStarNumberMod.HarmonyPatches
                 _pP.SetBestPredictedPP(_pP.NoPredictedPP);
                 if (PluginManager.GetPlugin("BetterSongList") != null) return;
                 DeleteSecondAndSubsequentLines(field);
-                double predictedStarNumber = await _star.GetLatestPredictedStarNumber();
+                double predictedStarNumber = await _star.GetPredictedStarNumber();
                 if (predictedStarNumber == _star.SkipStarNumber
                     || predictedStarNumber == _star.ErrorStarNumber)
                     return;
@@ -104,13 +100,7 @@ namespace PredictStarNumberMod.HarmonyPatches
 
             try
             {
-#if DEBUG
-                Plugin.Log.Info($"GetPercentage before awaiting _star.GetLatestPredictedStarNumber() : {percentage}");
-#endif
-                double predictedStarNumber = await _star.GetLatestPredictedStarNumber();
-#if DEBUG
-                Plugin.Log.Info($"GetPercentage after awaiting _star.GetLatestPredictedStarNumber() : {percentage}");
-#endif
+                double predictedStarNumber = await _star.GetPredictedStarNumber();
 
                 DeleteSecondAndSubsequentLines(field);
                 if (predictedStarNumber == _star.SkipStarNumber
@@ -119,24 +109,29 @@ namespace PredictStarNumberMod.HarmonyPatches
                     _pP.SetBestPredictedPP(_pP.NoPredictedPP);
                     return;
                 }
-#if DEBUG
-                Plugin.Log.Info($"GetPercentage before awaiting _pP.SetBestPredictedPP(await _pP.CalculateBestPP(percentage)) : {percentage}");
-#endif
-                _pP.SetBestPredictedPP(await _pP.CalculateBestPP(percentage));
-#if DEBUG
-                Plugin.Log.Info($"GetPercentage after awaiting _pP.SetBestPredictedPP(await _pP.CalculateBestPP(percentage)) : {percentage}");
-#endif
 
+                try
+                {
+                    Plugin.Log.Info($"Start AddQueueCalculatingAndSettingBestPP by LevelStatsViewPatch : {percentage}");
+                    // 高速で譜面切り替えると、percentageをここで引数としては使うと、なぜかその時点で前の譜面の値に切り替わる
+                    // そこで、_pPに排他制御を効かせてもらうことで、この問題を解決
+                    double test = await _pP.AddQueueCalculatingAndSettingBestPP();
+                    Plugin.Log.Info($"test : {test}");
+                }
+                catch(Exception ex)
+                {
+                    Plugin.Log.Error(ex);
+                    _pP.SetBestPredictedPP(_pP.NoPredictedPP);
+                }
 #if DEBUG
-                Plugin.Log.Info($"GetPercentage before awaiting _pP.GetLatestBestPredictedPP : {percentage}");
-#endif
-                double bestPredictedPP = await _pP.GetLatestBestPredictedPP();
-#if DEBUG
-                Plugin.Log.Info($"GetPercentage after awaiting _pP.GetLatestBestPredictedPP : {percentage}");
+                Plugin.Log.Info($"GetPercentage after awaiting _pP.AddQueueCalculatingAndSettingBestPP(percentage) : {percentage}");
 #endif
                 
-                // 上述したとおり、非同期処理のawait待ちのせいでずれる場合があるので、ここでも確認
-                if(field.text == "-")
+                double bestPredictedPP = await _pP.GetBestPredictedPP();
+                Plugin.Log.Info($"bestPredictedPP : {bestPredictedPP}");
+
+                // 上述したとおり、非同期処理のawait待ち先の処理が後にずれる場合があるので、ここでも確認
+                if (field.text == "-")
                 {
                     _pP.SetBestPredictedPP(_pP.NoPredictedPP);
                     if (PluginManager.GetPlugin("BetterSongList") != null) return;
@@ -178,7 +173,8 @@ namespace PredictStarNumberMod.HarmonyPatches
                 rectTransform.anchoredPosition = modifiedAnchordPostion;
         }
 
-        // 高速で譜面切り替えると、譜面が完全に切り替わっていない瞬間は変な値が返ってくる
+        // 高速で譜面切り替えると、譜面が完全に切り替わっていない瞬間は変な値が返ってくることがある？
+        // スレッドセーフにしてる途中からなくなったかも
         private async Task<double> GetPercentage(BeatmapKey beatmapKey, PlayerData playerData)
         {
             if (playerData == null) return neverClearPercentage;

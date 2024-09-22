@@ -3,6 +3,7 @@ using PredictStarNumberMod.Map;
 using PredictStarNumberMod.Overlay;
 using PredictStarNumberMod.PP;
 using PredictStarNumberMod.Star;
+using PredictStarNumberMod.Utilities;
 using Zenject;
 
 namespace PredictStarNumberMod.Installers
@@ -16,8 +17,6 @@ namespace PredictStarNumberMod.Installers
             Container.Bind<Star.Star>().AsSingle();
             Container.Bind<Model.Model>().AsSingle();
             Container.Bind<PP.PP>().AsSingle();
-            Container.Bind<PredictedStarNumberMonitor>().AsSingle();
-            Container.Bind<BestPredictedPPMonitor>().AsSingle();
 
             // すべてのModのEnable後に実行されるっぽいので、よほどのことが無ければこれで依存関係問題ないはず
             if (PluginManager.GetPlugin("HttpSiraStatus") == null) return;

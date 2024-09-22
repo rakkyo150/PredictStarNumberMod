@@ -5,48 +5,67 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
+using PredictStarNumberMod.Utilities;
 
 namespace PredictStarNumberMod.Star
 {
     public class Star
     {
-        private double predictedStarNumber = double.MinValue;
         public double SkipStarNumber { get; } = -1.0;
         public double ErrorStarNumber { get; } = -10.0;
 
+        // 共有メモリ
+        private double predictedStarNumber = double.MinValue;
+
         public Action<double> ChangedPredictedStarNumber;
+        //　共有メモリここまで
+
+        private readonly Object lockObject = new Object();
+        private readonly OrderedAsyncTaskQueue<double> _orderedAsyncTaskQueue = new OrderedAsyncTaskQueue<double>();
 
         private readonly Model.Model _model;
         private readonly MapDataContainer _mapDataContainer;
-        private readonly PredictedStarNumberMonitor _predictedStarNumberMonitor;
 
-        public Star(Model.Model model, MapDataContainer mapDataContainer, PredictedStarNumberMonitor predictedStarNumberMonitor)
+        public Star(Model.Model model, MapDataContainer mapDataContainer)
         {
             _model = model;
             _mapDataContainer = mapDataContainer;
-            _predictedStarNumberMonitor = predictedStarNumberMonitor;
         }
-
-        public async Task<double> GetLatestPredictedStarNumber()
-        {
-            await _predictedStarNumberMonitor.AwaitUntilPredictedStarNumberChangedCompletly();
-            return this.predictedStarNumber;
-        } 
 
         internal void SetPredictedStarNumber(double newPredictedStarNumber)
         {
-            this.predictedStarNumber = newPredictedStarNumber;
-            _predictedStarNumberMonitor.FinishChangingPredictedStarNumber();
-            this.ChangedPredictedStarNumber?.Invoke(this.predictedStarNumber);
+            lock (lockObject)
+            {
+                this.predictedStarNumber = newPredictedStarNumber;
+                this.ChangedPredictedStarNumber?.Invoke(this.predictedStarNumber);
 #if DEBUG
-            Plugin.Log.Info($"predictedStarNumber Changed : newPredictedStarNumber=={newPredictedStarNumber}");
+                Plugin.Log.Info($"predictedStarNumber Changed : newPredictedStarNumber=={newPredictedStarNumber}");
 #endif
+            }
         }
 
-        internal async Task<double> PredictStarNumber()
+        public async Task<double> GetPredictedStarNumber()
         {
-            _predictedStarNumberMonitor.PlusTryPredictingCount();
+            await _orderedAsyncTaskQueue.WaitUntilQueueEmptyAsync();
+            
+            lock (lockObject)
+            {
+                return this.predictedStarNumber;
+            }
+        }
 
+        public async Task<double> AddQueuePredictingAndSettingStarNumber()
+        {
+            return await _orderedAsyncTaskQueue.StartTaskAsync(async () =>
+            {
+                double predictedStarNumber = await PredictStarNumber();
+                SetPredictedStarNumber(predictedStarNumber);
+                return predictedStarNumber;
+            });
+        }
+
+        private async Task<double> PredictStarNumber()
+        {
             try
             {
 #if DEBUG
@@ -106,10 +125,6 @@ namespace PredictStarNumberMod.Star
             {
                 Plugin.Log.Error(ex);
                 return this.ErrorStarNumber;
-            }
-            finally
-            {
-                _predictedStarNumberMonitor.MinusTryPredictingCount();
             }
         }
     }

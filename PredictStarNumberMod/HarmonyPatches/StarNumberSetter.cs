@@ -1,7 +1,6 @@
 ﻿using BetterSongList.HarmonyPatches.UI;
 using PredictStarNumberMod.Configuration;
 using PredictStarNumberMod.Map;
-using PredictStarNumberMod.Star;
 using SiraUtil.Affinity;
 using System;
 using System.Collections.Generic;
@@ -19,17 +18,15 @@ namespace PredictStarNumberMod.HarmonyPatches
     {
         private readonly MapDataContainer _mapDataContainer;
         private readonly Star.Star _star;
-        private readonly PredictedStarNumberMonitor _predictedStarNumberMonitor;
 
         private float originalFontSize = float.MinValue;
 
         private string sSRankStarNumber = string.Empty;
 
-        public StarNumberSetter(MapDataContainer mapDataContainer, Star.Star star, PredictedStarNumberMonitor predictedStarNumberMonitor)
+        public StarNumberSetter(MapDataContainer mapDataContainer, Star.Star star)
         {
             _mapDataContainer = mapDataContainer;
             _star = star;
-            _predictedStarNumberMonitor = predictedStarNumberMonitor;
         }
 
         public class LatestRelease
@@ -40,13 +37,6 @@ namespace PredictStarNumberMod.HarmonyPatches
         public class DownloadUrl
         {
             public string browser_download_url;
-        }
-
-        [AffinityPatch(typeof(ExtraLevelParams), nameof(ExtraLevelParams.Postfix))]
-        [AffinityPrefix]
-        protected void Prefix()
-        {
-            _predictedStarNumberMonitor.StartChangingPredictedStarNumber();
         }
 
         /// <summary>
@@ -107,7 +97,8 @@ namespace PredictStarNumberMod.HarmonyPatches
             // 非同期で書き換えをする必要がある
             async Task wrapper(TextMeshProUGUI[] fields)
             {
-                double predictedStarNumber = await _star.GetLatestPredictedStarNumber();
+                Plugin.Log.Info("Start AddQueuePredictingStarNumber by BetterSongList");
+                double predictedStarNumber = await _star.AddQueuePredictingAndSettingStarNumber();
                 
                 if (predictedStarNumber == _star.ErrorStarNumber)
                 {
