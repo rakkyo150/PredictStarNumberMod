@@ -1,6 +1,10 @@
 ﻿
 <settings-container>
+	<text text="Enable And Display Settings Affect All Features Including Custom Counter" align="Center" font-size="4" size-delta-y='9'/>
 	<bool-setting text="Enable" value="Enable" apply-on-change="true"></bool-setting>
-	<bool-setting text="Display Values In Rank Maps" value="DisplayValueInRankMap" apply-on-change="true" hover-hint="Do you want to show predicted star number in ranked maps in parallel?"></bool-setting>
-	<bool-setting text="Overlay" value="Overlay" apply-on-change="true"></bool-setting>
+	<bool-setting text="Display Best PP" value="DisplayBestPP" apply-on-change="true" hover-hint="Do you want to show best predicted PP?"></bool-setting>
+	<bool-setting text="Display Now PP" value="DisplayNowPP" apply-on-change="true" hover-hint="Do you want to show now predicted PP?"></bool-setting>
+	<bool-setting text="Display Values In Rank Maps" value="DisplayValuesInRankMap" apply-on-change="true" hover-hint="Do you want to show all values in ranked maps?"></bool-setting>
+	<text text="Overlay Setting Affect Only Overlay" align="Center" font-size="4" size-delta-y='9'/>
+	<bool-setting text="Overlay" value="Overlay" apply-on-change="true" hover-hint="Do you not want to show all predicted values on overlay?"></bool-setting>
 </settings-container>

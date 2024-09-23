@@ -1,6 +1,5 @@
-﻿using IPA.Loader;
-using PredictStarNumberMod.PP;
-using PredictStarNumberMod.Star;
+﻿using PredictStarNumberMod.Configuration;
+using IPA.Loader;
 using SiraUtil.Affinity;
 using System;
 using System.Threading;
@@ -20,6 +19,8 @@ namespace PredictStarNumberMod.HarmonyPatches
         private double neverClearPercentage = -1;
 
         private RectTransform rectTransform;
+
+        private SongDetailsCache.SongDetails songDetails;
 
         private readonly PP.PP _pP;
         private readonly Star.Star _star;
@@ -59,6 +60,7 @@ namespace PredictStarNumberMod.HarmonyPatches
         // Entrypoint
         protected void Postfix(ref TextMeshProUGUI ____highScoreText, BeatmapKey beatmapKey, PlayerData playerData)
         {
+            if (!PluginConfig.Instance.Enable) return;
             wrapper(____highScoreText, beatmapKey, playerData);
         }
 
@@ -66,19 +68,9 @@ namespace PredictStarNumberMod.HarmonyPatches
         {
             if (PluginManager.GetPlugin("BetterSongList") == null)
             {
-                try
-                {
-#if DEBUG
-                    Plugin.Log.Info("Start AddQueuePredictingStarNumber by LevelStatsViewPatch");
-#endif
-                    await _star.AddQueuePredictingAndSettingStarNumber();
-                }
-                catch (Exception ex)
-                {
-                    Plugin.Log.Error(ex);
-                    _star.SetPredictedStarNumber(_star.ErrorStarNumber);
-                }
+                await SetStarNumberWithoutBetterSongList(beatmapKey);
             }
+
             double percentage = await GetPercentage(beatmapKey, playerData);
             _pP.SetAccuracy(percentage);
 #if DEBUG
@@ -86,7 +78,7 @@ namespace PredictStarNumberMod.HarmonyPatches
 #endif
             // クリアなしの処理は早期にここで切れる
             // そのため、クリアありの処理でクリアなしの処理の前に実行された処理に関して、後にfield.textでも確認が必要
-            if (percentage == neverClearPercentage || field.text == "-")
+            if (percentage == neverClearPercentage || !PluginConfig.Instance.DisplayBestPP || field.text == "-")
             {
                 _pP.SetBestPredictedPP(_pP.NoPredictedPP);
                 if (PluginManager.GetPlugin("BetterSongList") != null) return;
@@ -99,6 +91,8 @@ namespace PredictStarNumberMod.HarmonyPatches
                 ChangeFieldHeightForSecondAndSubsequentLines(rectTransform);
                 return;
             }
+
+            if (!PluginConfig.Instance.DisplayBestPP) return;
 
             try
             {
@@ -204,6 +198,57 @@ namespace PredictStarNumberMod.HarmonyPatches
             double resultPercentage = (double)((double)highscore / (double)currentDifficultyMaxScore);
 
             return resultPercentage;
+        }
+
+        private async Task SetStarNumberWithoutBetterSongList(BeatmapKey beatmapKey)
+        {
+            try
+            {
+                if (PluginConfig.Instance.DisplayValuesInRankMap || PluginManager.GetPluginFromId("SongDetailsCache") == null)
+                {
+                    await _star.AddQueuePredictingAndSettingStarNumber();
+                    return;
+                }
+
+                if(songDetails == null) songDetails = await SongDetailsCache.SongDetails.Init();
+                bool songExists = songDetails.songs.FindByHash(beatmapKey.GetHashCode().ToString(), out var song);
+                bool difficyltyExits = song.GetDifficulty(out var difficulty, (SongDetailsCache.Structs.MapDifficulty)beatmapKey.difficulty,
+                    (SongDetailsCache.Structs.MapCharacteristic)this.GetCharacteristicFromDifficulty(beatmapKey));
+                if (!songExists || !difficyltyExits)
+                {
+                    await _star.AddQueuePredictingAndSettingStarNumber();
+                    return;
+                }
+
+                if (difficulty.stars > 0)
+                {
+                    _star.SetPredictedStarNumber(_star.SkipStarNumber);
+                    return;
+                }
+
+                await _star.AddQueuePredictingAndSettingStarNumber();
+            }
+            catch (Exception ex)
+            {
+                Plugin.Log.Error(ex);
+                _star.SetPredictedStarNumber(_star.ErrorStarNumber);
+            }
+        }
+
+        private int GetCharacteristicFromDifficulty(BeatmapKey diff)
+        {
+            var d = diff.beatmapCharacteristic?.sortingOrder;
+
+            if (d == null || d > 4)
+                return 0;
+
+            // 360 and 90 are "flipped" as far as the enum goes
+            if (d == 3)
+                d = 4;
+            else if (d == 4)
+                d = 3;
+
+            return (int)d + 1;
         }
     }
 }

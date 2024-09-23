@@ -34,7 +34,7 @@ namespace PredictStarNumberMod.Overlay
 #if Debug
             Plugin.Log.Info("PredictedStarNumber changed");
 #endif
-            if (!PluginConfig.Instance.Overlay)
+            if (!PluginConfig.Instance.Overlay || !PluginConfig.Instance.DisplayNowPP)
             {
                 if (this.nowPredictedPPOverlayStatus == OverlayStatus.Hide) return;
 

@@ -52,7 +52,8 @@ namespace PredictStarNumberMod.Overlay
 #if Debug
             Plugin.Log.Info("PredictedStarNumber changed");
 #endif      
-            if (!PluginConfig.Instance.Overlay)
+            // !PluginConfig.Instance.DisplayBestPPはなくても問題はないが、無駄な送信をなくすため
+            if (!PluginConfig.Instance.Overlay || !PluginConfig.Instance.DisplayBestPP)
             {
                 if (this.bestPredictedPPOverlayStatus == OverlayStatus.Hide) return;
 

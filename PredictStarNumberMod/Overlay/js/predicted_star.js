@@ -53,12 +53,12 @@ ex_other.push((data) => {
 });
 
 function setPredictedStar(data) {
+	if (predicted_star == null) return;
+
 	if (typeof data.other.PredictedStar === "undefined") {
 		hidePredictedStarVisibility();
 		return;
 	}
-
-	if (predicted_star == null) return;
 
 	if (data.other.PredictedStar == skip_star) {
 		hidePredictedStarVisibility();
@@ -76,12 +76,12 @@ function setPredictedStar(data) {
 }
 
 function setBestPredictedPP(data) {
+	if (best_predicted_pp == null) return;
+
 	if (typeof data.other.BestPredictedPP === "undefined") {
 		hideBestPredictedPPVisibility();
 		return;
 	}
-
-	if (best_predicted_pp == null) return;
 
 	if (data.other.BestPredictedPP == no_predicted_pp) {
 		hideBestPredictedPPVisibility();
@@ -95,12 +95,12 @@ function setBestPredictedPP(data) {
 }
 
 function setNowPredictedPP(data) {
+	if (now_predicted_pp == null) return;
+
 	if (typeof data.other.NowPredictedPP === "undefined") {
 		hideNowPredictedPPVisibility();
 		return;
 	}
-
-	if (now_predicted_pp == null) return;
 
 	if (data.other.NowPredictedPP == no_predicted_pp) {
 		hideNowPredictedPPVisibility();
@@ -130,8 +130,8 @@ function hideBestPredictedPPVisibility()
 function hideNowPredictedPPVisibility() {
 	if (now_predicted_pp_visibility == null) now_predicted_pp_visibility = document.getElementById("now_predicted_pp_visibility");
 
-	if (best_predicted_pp_visibility != null) now_predicted_pp_visibility.style.visibility = "hidden";
-	else now_predicted_pp_visibility.style.visibility == "hidden"
+	if (now_predicted_pp_visibility != null) now_predicted_pp_visibility.style.visibility = "hidden";
+	else now_predicted_pp.style.visibility == "hidden"
 }
 
 function checkPredictedStarVisible() {

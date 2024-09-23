@@ -17,14 +17,12 @@
 また、以下の内容もコピーして、少なくとも<div id="overlay" class="hidden">より下の階層のどこかにペーストしてください。  
 おすすめは、`<div id="meta">`より下の階層のどこかへのペーストです。
 ```html
-<div>
-    <span id="predicted_star_mod_group">
-        <span id="predicted_star_visibility">
-            <span>(★</span><span id="predicted_star">0.0</span><span>)</span>
-        </span>
-        <span id="best_predicted_pp_visibility">
-            <span>(</span><span id="best_predicted_pp">0.0</span><span>pp)</span>
-        </span>
+<div id="predicted_star_mod_group">
+    <span id="predicted_star_visibility">
+        <span>(★</span><span id="predicted_star">0.0</span><span>)</span>
+    </span>
+    <span id="best_predicted_pp_visibility">
+        <span>(</span><span id="best_predicted_pp">0.0</span><span>pp)</span>
     </span>
 </div>
 ```
@@ -36,7 +34,7 @@
 [サンプルのHTML](sample.html)も同梱しているので、そちらも参考にしてください。  
 
 ## コピー内容の意味
-URLパラメータを追加しない場合の非表示の範囲は`<div class="performance_group" id="now_predicted_pp_group">`より下の階層と`<span id="predicted_star_mod_group">`より下の階層です。  
+URLパラメータを追加しない場合の非表示の範囲は`<div class="performance_group" id="now_predicted_pp_group">`より下の階層と`<div id="predicted_star_mod_group">`より下の階層です。  
 `<span id="now_predicted_pp_visibility">`や`<span id="predicted_star_visibility">`　、`<span id="best_predicted_pp_visibility">`は、いずれも表示非表示をプログラムが自動で切り替えるために必要なタグです。  
 リアルタイムの予測ppは`<span class="text" id="now_predicted_pp">0</span>`の`0`の部分を書き換える処理になっています。  
 星予測値は`<span id="predicted_star">0.0</span>`の`0.0`の部分を書き換える処理になっています。  

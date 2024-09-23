@@ -21,25 +21,39 @@ namespace PredictStarNumberMod
                 if (PluginConfig.Instance.Enable == value) return;
                 PluginConfig.Instance.Enable = value;
                 NotifyPropertyChanged();
-
-#if DEBUG
-                Plugin.Log.Info("Enable has been changed");
-#endif
             }
         }
 
-        public bool DisplayValueInRankMap
+        public bool DisplayBestPP
         {
-            get { return PluginConfig.Instance.DisplayValueInRankMap; }
+            get { return PluginConfig.Instance.DisplayBestPP; }
             set
             {
-                if (PluginConfig.Instance.DisplayValueInRankMap == value) return;
-                PluginConfig.Instance.DisplayValueInRankMap = value;
+                if (PluginConfig.Instance.DisplayBestPP == value) return;
+                PluginConfig.Instance.DisplayBestPP = value;
                 NotifyPropertyChanged();
+            }
+        }
 
-#if DEBUG
-                Plugin.Log.Info("DisplayValueInRankMap has been Changed");
-#endif
+        public bool DisplayNowPP
+        {
+            get { return PluginConfig.Instance.DisplayNowPP; }
+            set
+            {
+                if (PluginConfig.Instance.DisplayNowPP == value) return;
+                PluginConfig.Instance.DisplayNowPP = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public bool DisplayValuesInRankMap
+        {
+            get { return PluginConfig.Instance.DisplayValuesInRankMap; }
+            set
+            {
+                if (PluginConfig.Instance.DisplayValuesInRankMap == value) return;
+                PluginConfig.Instance.DisplayValuesInRankMap = value;
+                NotifyPropertyChanged();
             }
         }
 
@@ -51,10 +65,6 @@ namespace PredictStarNumberMod
                 if (PluginConfig.Instance.Overlay == value) return;
                 PluginConfig.Instance.Overlay = value;
                 NotifyPropertyChanged();
-
-#if DEBUG
-                Plugin.Log.Info("Overlay has been Enable");
-#endif
             }
         }
 
