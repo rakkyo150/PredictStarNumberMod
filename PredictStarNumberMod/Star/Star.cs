@@ -5,7 +5,6 @@ using PredictStarNumberMod.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -42,16 +41,13 @@ namespace PredictStarNumberMod.Star
             {
                 this.predictedStarNumber = newPredictedStarNumber;
                 this.ChangedPredictedStarNumber?.Invoke(this.predictedStarNumber);
-                previoudMapHash = _mapDataContainer.MapHash;
-                preciousBeatmapDifficulty = _mapDataContainer.BeatmapDifficulty;
-                previousCharacteristic = _mapDataContainer.Characteristic;
 #if DEBUG
                 Plugin.Log.Info($"predictedStarNumber Changed : newPredictedStarNumber=={newPredictedStarNumber}");
 #endif
             }
         }
 
-        public async Task<double> GetPredictedStarNumber()
+        public async Task<double> GetPredictedStarNumberAfterWaitingQueue()
         {
             await _orderedAsyncTaskQueue.WaitUntilQueueEmptyAsync();
 
@@ -68,6 +64,25 @@ namespace PredictStarNumberMod.Star
                 double predictedStarNumber = await PredictStarNumber();
                 SetPredictedStarNumber(predictedStarNumber);
                 return predictedStarNumber;
+            });
+        }
+
+        internal void RefreshPreviousMadDataForPredictingStarNumber()
+        {
+            lock (lockObject)
+            {
+                previoudMapHash = _mapDataContainer.MapHash;
+                preciousBeatmapDifficulty = _mapDataContainer.BeatmapDifficulty;
+                previousCharacteristic = _mapDataContainer.Characteristic;
+            }
+        }
+
+        internal async Task<double> AddQueueSettingSkipStarNumber()
+        {
+            return await _orderedAsyncTaskQueue.StartTaskAsync(async () =>
+            {
+                SetPredictedStarNumber(this.SkipStarNumber);
+                return this.SkipStarNumber;
             });
         }
 
@@ -88,6 +103,8 @@ namespace PredictStarNumberMod.Star
 #endif
                     return this.predictedStarNumber;
                 }
+
+                this.RefreshPreviousMadDataForPredictingStarNumber();
 
                 if (_model.ModelByte.Length == 1)
                 {

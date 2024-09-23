@@ -60,10 +60,12 @@ namespace PredictStarNumberMod.HarmonyPatches
                 return;
             }
 
+            Plugin.Log.Info($"___fields[1].text : {___fields[1].text}");
+
             // データなし
             if (___fields[1].text == "?")
             {
-                _star.SetPredictedStarNumber(_star.SkipStarNumber);
+                SetSkipStarNumberAndQuestionMark(___fields);
                 return;
             }
 
@@ -77,7 +79,6 @@ namespace PredictStarNumberMod.HarmonyPatches
 
             if (isRankedMap)
             {
-                sSRankStarNumber = ___fields[1].text;
                 ___fields[1].text += "...";
             }
             else
@@ -119,6 +120,17 @@ namespace PredictStarNumberMod.HarmonyPatches
 
                 SetPredictedStarNumberForUnrankedMap(fields, predictedStarNumberString);
             }
+        }
+
+        private async Task SetSkipStarNumberAndQuestionMark(TextMeshProUGUI[] fields)
+        {
+            Plugin.Log.Info("Start AddQueueSettingSkipStarNumber");
+            double _ = await _star.AddQueueSettingSkipStarNumber();
+            Plugin.Log.Info("Finish AddQueueSettingSkipStarNumber");
+            fields[1].text = "?";
+
+            //　次回の星予測のデータのために更新必要
+            _star.RefreshPreviousMadDataForPredictingStarNumber();
         }
 
         private void SetPredictedStarNumberForRankedMap(TextMeshProUGUI[] fields, string predictedStarNumber)
