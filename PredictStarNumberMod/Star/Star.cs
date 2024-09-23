@@ -22,7 +22,8 @@ namespace PredictStarNumberMod.Star
 
         public Action<double> ChangedPredictedStarNumber;
 
-        private readonly Object lockObject = new Object();
+        private readonly Object lockPredictedStarNumber = new Object();
+        private readonly Object lockMapData = new Object();
         private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
         private readonly OrderedAsyncTaskQueue<double> _orderedAsyncTaskQueue = new OrderedAsyncTaskQueue<double>();
 
@@ -37,7 +38,7 @@ namespace PredictStarNumberMod.Star
 
         internal void SetPredictedStarNumber(double newPredictedStarNumber)
         {
-            lock (lockObject)
+            lock (lockPredictedStarNumber)
             {
                 this.predictedStarNumber = newPredictedStarNumber;
                 this.ChangedPredictedStarNumber?.Invoke(this.predictedStarNumber);
@@ -51,7 +52,7 @@ namespace PredictStarNumberMod.Star
         {
             await _orderedAsyncTaskQueue.WaitUntilQueueEmptyAsync();
 
-            lock (lockObject)
+            lock (lockPredictedStarNumber)
             {
                 return this.predictedStarNumber;
             }
@@ -69,7 +70,7 @@ namespace PredictStarNumberMod.Star
 
         internal void RefreshPreviousMadDataForPredictingStarNumber()
         {
-            lock (lockObject)
+            lock (lockMapData)
             {
                 previoudMapHash = _mapDataContainer.MapHash;
                 preciousBeatmapDifficulty = _mapDataContainer.BeatmapDifficulty;

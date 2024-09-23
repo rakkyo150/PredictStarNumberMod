@@ -22,6 +22,8 @@ namespace PredictStarNumberMod.HarmonyPatches
 
         private SongDetailsCache.SongDetails songDetails;
 
+        private readonly object lockField = new object();
+
         private readonly PP.PP _pP;
         private readonly Star.Star _star;
         private readonly BeatmapLevelLoader _beatmapLevelLoader;
@@ -78,7 +80,7 @@ namespace PredictStarNumberMod.HarmonyPatches
 #endif
             // クリアなしの処理は早期にここで切れる
             // そのため、クリアありの処理でクリアなしの処理の前に実行された処理に関して、後にfield.textでも確認が必要
-            if (percentage == neverClearPercentage || !PluginConfig.Instance.DisplayBestPP || field.text == "-")
+            if (percentage == neverClearPercentage || !PluginConfig.Instance.DisplayBestPP || CheckFieldText(field, "-"))
             {
                 _pP.SetBestPredictedPP(_pP.NoPredictedPP);
                 if (PluginManager.GetPlugin("BetterSongList") != null) return;
@@ -87,7 +89,10 @@ namespace PredictStarNumberMod.HarmonyPatches
                 if (predictedStarNumber == _star.SkipStarNumber
                     || predictedStarNumber == _star.ErrorStarNumber)
                     return;
-                field.text += "\n(★" + predictedStarNumber.ToString("0.00") + ")";
+                lock (lockField)
+                {
+                    field.text += "\n(★" + predictedStarNumber.ToString("0.00") + ")";
+                }
                 ChangeFieldHeightForSecondAndSubsequentLines(rectTransform);
                 return;
             }
@@ -113,9 +118,9 @@ namespace PredictStarNumberMod.HarmonyPatches
 #endif
                     // 高速で譜面切り替えると、percentageをここで引数としては使うと、なぜかその時点で前の譜面の値に切り替わる
                     // そこで、_pPに排他制御を効かせてもらうことで、この問題を解決
-                    double test = await _pP.AddQueueCalculatingAndSettingBestPP();
+                    double PPResult = await _pP.AddQueueCalculatingAndSettingBestPP();
 #if DEBUG
-                    Plugin.Log.Info($"test : {test}");
+                    Plugin.Log.Info($"PP result : {PPResult}");
 #endif
                 }
                 catch (Exception ex)
@@ -133,7 +138,7 @@ namespace PredictStarNumberMod.HarmonyPatches
 #endif
 
                 // 上述したとおり、非同期処理のawait待ち先の処理が後にずれる場合があるので、ここでも確認
-                if (field.text == "-")
+                if (CheckFieldText(field, "-"))
                 {
                     _pP.SetBestPredictedPP(_pP.NoPredictedPP);
                     if (PluginManager.GetPlugin("BetterSongList") != null) return;
@@ -141,7 +146,10 @@ namespace PredictStarNumberMod.HarmonyPatches
                     if (predictedStarNumber == _star.SkipStarNumber
                         || predictedStarNumber == _star.ErrorStarNumber)
                         return;
-                    field.text += "\n(★" + predictedStarNumber.ToString("0.00") + ")";
+                    lock (lockField)
+                    {
+                        field.text += "\n(★" + predictedStarNumber.ToString("0.00") + ")";
+                    }
                     ChangeFieldHeightForSecondAndSubsequentLines(rectTransform);
                     return;
                 }
@@ -149,11 +157,17 @@ namespace PredictStarNumberMod.HarmonyPatches
                 DeleteSecondAndSubsequentLines(field);
                 if (PluginManager.GetPlugin("BetterSongList") == null)
                 {
-                    field.text += "\n(★" + predictedStarNumber.ToString("0.00") + " | " + bestPredictedPP.ToString("0.00") + "PP)";
+                    lock (lockField)
+                    {
+                        field.text += "\n(★" + predictedStarNumber.ToString("0.00") + " | " + bestPredictedPP.ToString("0.00") + "PP)";
+                    }
                 }
                 else
                 {
-                    field.text += "\n(" + bestPredictedPP.ToString("0.00") + "PP)";
+                    lock (lockField)
+                    {
+                        field.text += "\n(" + bestPredictedPP.ToString("0.00") + "PP)";
+                    }
                 }
                 ChangeFieldHeightForSecondAndSubsequentLines(rectTransform);
             }
@@ -163,16 +177,30 @@ namespace PredictStarNumberMod.HarmonyPatches
             }
         }
 
+        private bool CheckFieldText(TextMeshProUGUI field, string value)
+        {
+            lock (lockField)
+            {
+                return field.text == value;
+            }
+        }
+
         private void DeleteSecondAndSubsequentLines(TextMeshProUGUI field)
         {
-            // 短い間隔でマップを変更した場合、最終実行時の結果を残すため
-            field.text = field.text.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)[0];
+            lock (lockField)
+            {
+                // 短い間隔でマップを変更した場合、最終実行時の結果を残すため
+                field.text = field.text.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)[0];
+            }
         }
 
         private void ChangeFieldHeightForSecondAndSubsequentLines(RectTransform rectTransform)
         {
-            if (rectTransform.anchoredPosition == originalAnchoredPosition)
-                rectTransform.anchoredPosition = modifiedAnchordPostion;
+            lock (lockField)
+            {
+                if (rectTransform.anchoredPosition == originalAnchoredPosition)
+                    rectTransform.anchoredPosition = modifiedAnchordPostion;
+            }    
         }
 
         // 高速で譜面切り替えると、譜面が完全に切り替わっていない瞬間は変な値が返ってくることがある？

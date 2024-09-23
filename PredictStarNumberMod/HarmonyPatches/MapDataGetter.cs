@@ -14,7 +14,7 @@ namespace PredictStarNumberMod.HarmonyPatches
     {
         private readonly MapDataContainer _mapDataContainer;
 
-        private readonly object lockObject = new object();
+        private readonly object lockMapData = new object();
 
         public MapDataGetter(MapDataContainer mapDataContainer)
         {
@@ -37,7 +37,7 @@ namespace PredictStarNumberMod.HarmonyPatches
             if (!PluginConfig.Instance.Enable) return;
 
             string mapHash = GetHashOfLevel(____beatmapLevel);
-            lock (lockObject)
+            lock (lockMapData)
             {
                 _mapDataContainer.MapHash = mapHash;
                 _mapDataContainer.BeatmapDifficulty = __instance.beatmapKey.difficulty;

@@ -21,7 +21,9 @@ namespace PredictStarNumberMod.PP
 
         public Action<double> ChangedBestPredictedPP;
 
-        private readonly Object lockObject = new Object();
+        private readonly Object lockBestPP = new Object();
+        private readonly Object lockAccuracy = new Object();
+        private readonly Object lockCurveAndSlope = new Object();
         private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
         private readonly SemaphoreSlim semaphore_for_calculate = new SemaphoreSlim(1);
         private readonly OrderedAsyncTaskQueue<double> _orderedAsyncTaskQueue = new OrderedAsyncTaskQueue<double>();
@@ -37,7 +39,7 @@ namespace PredictStarNumberMod.PP
 
         internal void SetBestPredictedPP(double newPredictedPP)
         {
-            lock (lockObject)
+            lock (lockBestPP)
             {
                 this.bestPredictedPP = newPredictedPP;
                 this.ChangedBestPredictedPP?.Invoke(this.bestPredictedPP);
@@ -49,7 +51,7 @@ namespace PredictStarNumberMod.PP
 
         internal void SetAccuracy(double newAccuracy)
         {
-            lock (lockObject)
+            lock (lockAccuracy)
             {
                 this.accuracy = newAccuracy;
             }
@@ -59,7 +61,7 @@ namespace PredictStarNumberMod.PP
         {
             await _orderedAsyncTaskQueue.WaitUntilQueueEmptyAsync();
 
-            lock (lockObject)
+            lock (lockBestPP)
             {
                 return this.bestPredictedPP;
             }
@@ -139,7 +141,7 @@ namespace PredictStarNumberMod.PP
 
         private void SetCurve(Curves curves)
         {
-            lock (lockObject)
+            lock (lockCurveAndSlope)
             {
                 this.Curve = curves.ScoreSaber.standardCurve;
                 this.Slopes = this.GetSlopes();
