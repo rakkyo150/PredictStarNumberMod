@@ -1,8 +1,8 @@
 ﻿using Microsoft.ML.OnnxRuntime;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using static PredictStarNumberMod.HarmonyPatches.StarNumberSetter;
 
 namespace PredictStarNumberMod.Model
 {
@@ -31,6 +31,16 @@ namespace PredictStarNumberMod.Model
             client.Dispose();
             request.Dispose();
             return await modelResponse.Content.ReadAsByteArrayAsync();
+        }
+
+        public class LatestRelease
+        {
+            public List<DownloadUrl> assets;
+        }
+
+        public class DownloadUrl
+        {
+            public string browser_download_url;
         }
     }
 }

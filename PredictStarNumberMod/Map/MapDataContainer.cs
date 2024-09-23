@@ -10,7 +10,7 @@ namespace PredictStarNumberMod.Map
         internal MapData NoMapData { get; } = new MapData(float.MinValue, float.MinValue, int.MinValue,
             int.MinValue, float.MinValue, float.MinValue, int.MinValue, int.MinValue, int.MinValue, float.MinValue, int.MinValue,
             int.MinValue, int.MinValue, int.MinValue, int.MinValue);
-        
+
         internal string MapHash { get; set; } = string.Empty;
         internal BeatmapDifficulty BeatmapDifficulty { get; set; } = BeatmapDifficulty.Easy;
         internal BeatmapCharacteristicSO Characteristic { get; set; } = null;
