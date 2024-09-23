@@ -7,7 +7,7 @@ using static PredictStarNumberMod.Overlay.HttpStatus;
 
 namespace PredictStarNumberMod.Overlay
 {
-    internal class NowPP: IInitializable, IDisposable
+    internal class NowPP : IInitializable, IDisposable
     {
         private bool _disposedValue;
 
@@ -17,7 +17,7 @@ namespace PredictStarNumberMod.Overlay
 
         private OverlayStatus nowPredictedPPOverlayStatus;
 
-        public NowPP(RelativeScoreAndImmediateRankCounter relativeScoreAndImmediateRankCounter,IStatusManager statusManager, PP.PP pP)
+        public NowPP(RelativeScoreAndImmediateRankCounter relativeScoreAndImmediateRankCounter, IStatusManager statusManager, PP.PP pP)
         {
             _relativeScoreAndImmediateRank = relativeScoreAndImmediateRankCounter;
             _statusManager = statusManager;

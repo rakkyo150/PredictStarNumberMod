@@ -1,5 +1,4 @@
-﻿using CountersPlus.Installers;
-using IPA;
+﻿using IPA;
 using IPA.Config;
 using IPA.Config.Stores;
 using IPALogger = IPA.Logging.Logger;

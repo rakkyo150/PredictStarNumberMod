@@ -1,8 +1,8 @@
 ﻿using Microsoft.ML.OnnxRuntime;
 using Newtonsoft.Json;
-using static PredictStarNumberMod.HarmonyPatches.StarNumberSetter;
 using System.Net.Http;
 using System.Threading.Tasks;
+using static PredictStarNumberMod.HarmonyPatches.StarNumberSetter;
 
 namespace PredictStarNumberMod.Model
 {

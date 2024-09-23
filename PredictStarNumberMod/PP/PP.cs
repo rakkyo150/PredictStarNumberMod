@@ -58,7 +58,7 @@ namespace PredictStarNumberMod.PP
         public async Task<double> GetBestPredictedPP()
         {
             await _orderedAsyncTaskQueue.WaitUntilQueueEmptyAsync();
-            
+
             lock (lockObject)
             {
                 return this.bestPredictedPP;
