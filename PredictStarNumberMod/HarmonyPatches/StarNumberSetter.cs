@@ -3,7 +3,6 @@ using PredictStarNumberMod.Configuration;
 using PredictStarNumberMod.Map;
 using SiraUtil.Affinity;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using TMPro;
 
@@ -27,16 +26,6 @@ namespace PredictStarNumberMod.HarmonyPatches
         {
             _mapDataContainer = mapDataContainer;
             _star = star;
-        }
-
-        public class LatestRelease
-        {
-            public List<DownloadUrl> assets;
-        }
-
-        public class DownloadUrl
-        {
-            public string browser_download_url;
         }
 
         /// <summary>
