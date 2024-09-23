@@ -22,6 +22,8 @@ namespace PredictStarNumberMod.HarmonyPatches
 
         private string sSRankStarNumber = string.Empty;
 
+        private readonly object lockField = new object();
+
         public StarNumberSetter(MapDataContainer mapDataContainer, Star.Star star)
         {
             _mapDataContainer = mapDataContainer;
@@ -43,14 +45,17 @@ namespace PredictStarNumberMod.HarmonyPatches
             // IDifficultyBeatmap selectedDifficultyBeatmap = BS_Utils.Plugin.LevelData.GameplayCoreSceneSetupData.difficultyBeatmap;はNullになる
             // Resources.FindObjectsOfTypeAll<IDifficultyBeatmap>().FirstOrDefault();はUnityのObjectじゃないのでダメ
 
-            if (originalFontSize == float.MinValue)
+            lock (lockField)
             {
-                originalFontSize = ___fields[1].fontSize;
-            }
+                if (originalFontSize == float.MinValue)
+                {
+                    originalFontSize = ___fields[1].fontSize;
+                }
 
-            if (___fields[1].fontSize != originalFontSize)
-            {
-                ___fields[1].fontSize = originalFontSize;
+                if (___fields[1].fontSize != originalFontSize)
+                {
+                    ___fields[1].fontSize = originalFontSize;
+                }
             }
 
             if (!PluginConfig.Instance.Enable)
@@ -60,10 +65,8 @@ namespace PredictStarNumberMod.HarmonyPatches
                 return;
             }
 
-            Plugin.Log.Info($"___fields[1].text : {___fields[1].text}");
-
             // データなし
-            if (___fields[1].text == "?")
+            if (CheckFieldsTextValue(___fields, "?"))
             {
                 SetSkipStarNumberAndQuestionMark(___fields);
                 return;
@@ -77,13 +80,17 @@ namespace PredictStarNumberMod.HarmonyPatches
 
             bool isRankedMap = IsRankedMap(___fields);
 
-            if (isRankedMap)
+            lock (lockField)
             {
-                ___fields[1].text += "...";
-            }
-            else
-            {
-                ___fields[1].text = "...";
+                if (isRankedMap)
+                {
+                    sSRankStarNumber = ___fields[1].text;
+                    ___fields[1].text += "...";
+                }
+                else
+                {
+                    ___fields[1].text = "...";
+                }
             }
 
             wrapper(___fields);
@@ -101,7 +108,6 @@ namespace PredictStarNumberMod.HarmonyPatches
                     if (isRankedMap)
                     {
                         SetPredictedStarNumberForRankedMap(fields, "Error");
-                        fields[1].fontSize = 3.3f;
                         return;
                     }
                     SetPredictedStarNumberForUnrankedMap(fields, "Error");
@@ -122,12 +128,23 @@ namespace PredictStarNumberMod.HarmonyPatches
             }
         }
 
+        private bool CheckFieldsTextValue(TextMeshProUGUI[] ___fields, string value)
+        {
+            lock (lockField)
+            {
+                return ___fields[1].text == value;
+            }
+        }
+
         private async Task SetSkipStarNumberAndQuestionMark(TextMeshProUGUI[] fields)
         {
             Plugin.Log.Info("Start AddQueueSettingSkipStarNumber");
             double _ = await _star.AddQueueSettingSkipStarNumber();
             Plugin.Log.Info("Finish AddQueueSettingSkipStarNumber");
-            fields[1].text = "?";
+            lock (lockField)
+            {
+                fields[1].text = "?";
+            }
 
             //　次回の星予測のデータのために更新必要
             _star.RefreshPreviousMadDataForPredictingStarNumber();
@@ -135,22 +152,31 @@ namespace PredictStarNumberMod.HarmonyPatches
 
         private void SetPredictedStarNumberForRankedMap(TextMeshProUGUI[] fields, string predictedStarNumber)
         {
-            fields[1].text = fields[1].text.Replace("...", "");
-            // 高速譜面変更でScoreSaberのランク情報書き消えるので
-            fields[1].text = $"{sSRankStarNumber}({predictedStarNumber})";
-            fields[1].fontSize = 3.2f;
+            lock (lockField)
+            {
+                fields[1].text = fields[1].text.Replace("...", "");
+                // 高速譜面変更でScoreSaberのランク情報書き消えるので
+                fields[1].text = $"{sSRankStarNumber}({predictedStarNumber})";
+                fields[1].fontSize = 3.2f;
+            }
         }
 
         private void SetPredictedStarNumberForUnrankedMap(TextMeshProUGUI[] fields, string predictedStarNumber)
         {
-            fields[1].text = $"({predictedStarNumber})";
-            // 高速譜面変更でFontSizeが変わるので
-            fields[1].fontSize = originalFontSize;
+            lock (lockField)
+            {
+                fields[1].text = $"({predictedStarNumber})";
+                // 高速譜面変更でFontSizeが変わるので
+                fields[1].fontSize = originalFontSize;
+            }
         }
 
         private bool IsRankedMap(TextMeshProUGUI[] fields)
         {
-            return Double.TryParse(fields[1].text, out _);
+            lock (lockField)
+            {
+                return Double.TryParse(fields[1].text, out _);
+            }
         }
     }
 }
