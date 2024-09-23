@@ -66,7 +66,7 @@ namespace PredictStarNumberCounter
             // なくても問題はないが、無駄な処理をなくすため
             if (!PredictStarNumberMod.Configuration.PluginConfig.Instance.DisplayBestPP) return;
 
-            double bestPredictedPP = await _pP.GetBestPredictedPP();
+            double bestPredictedPP = await _pP.GetBestPredictedPPAfterWaitingQueue();
             bestPredictedPPString = bestPredictedPP.ToString($"F{PluginConfig.Instance.DecimalPrecision}") + "PP";
             if (bestPredictedPP == _pP.NoPredictedPP)
             {
@@ -77,7 +77,7 @@ namespace PredictStarNumberCounter
 
         private async Task SetPredictedStarNumber()
         {
-            double predictedStarNumber = await _star.GetPredictedStarNumber();
+            double predictedStarNumber = await _star.GetPredictedStarNumberAfterWaitingQueue();
             predictedStarNumberString = predictedStarNumber.ToString($"F{PluginConfig.Instance.DecimalPrecision}");
             if (predictedStarNumber == _star.ErrorStarNumber || predictedStarNumber == _star.SkipStarNumber)
             {

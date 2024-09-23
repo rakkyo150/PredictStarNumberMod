@@ -55,13 +55,37 @@ namespace PredictStarNumberMod.PP
             }
         }
 
-        public async Task<double> GetBestPredictedPP()
+        public async Task<double> GetBestPredictedPPAfterWaitingQueue()
         {
             await _orderedAsyncTaskQueue.WaitUntilQueueEmptyAsync();
 
             lock (lockObject)
             {
                 return this.bestPredictedPP;
+            }
+        }
+
+        public async Task<double> AddQueueCalculatingAndSettingBestPP(bool failed = false)
+        {
+            return await _orderedAsyncTaskQueue.StartTaskAsync(async () =>
+            {
+                double bestPP = await CalculateBestPP(failed);
+                SetBestPredictedPP(bestPP);
+                return bestPP;
+            });
+        }
+
+        internal async Task<double> CalculateBestPP(bool failed = false)
+        {
+            await semaphore.WaitAsync();
+            try
+            {
+                double bestPP = await this.CalculatePP(this.accuracy, failed);
+                return bestPP;
+            }
+            finally
+            {
+                semaphore.Release();
             }
         }
 
@@ -83,7 +107,8 @@ namespace PredictStarNumberMod.PP
                     SetCurve(_curveDownloader.Curves);
                 }
 
-                double predictedStarNumber = await _star.GetPredictedStarNumber();
+                double predictedStarNumber = await _star.GetPredictedStarNumberAfterWaitingQueue();
+                Plugin.Log.Info($"predictedStarNumber at CalculatePP : {predictedStarNumber}");
 
                 if (predictedStarNumber == _star.SkipStarNumber
                                    || predictedStarNumber == _star.ErrorStarNumber)
@@ -109,31 +134,6 @@ namespace PredictStarNumberMod.PP
             finally
             {
                 semaphore_for_calculate.Release();
-            }
-        }
-
-        public async Task<double> AddQueueCalculatingAndSettingBestPP(bool failed = false)
-        {
-            return await _orderedAsyncTaskQueue.StartTaskAsync(async () =>
-            {
-                double bestPP = await CalculateBestPP(failed);
-                SetBestPredictedPP(bestPP);
-                return bestPP;
-            });
-        }
-
-
-        internal async Task<double> CalculateBestPP(bool failed = false)
-        {
-            await semaphore.WaitAsync();
-            try
-            {
-                double bestPP = await this.CalculatePP(this.accuracy, failed);
-                return bestPP;
-            }
-            finally
-            {
-                semaphore.Release();
             }
         }
 

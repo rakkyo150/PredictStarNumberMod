@@ -83,7 +83,7 @@ namespace PredictStarNumberMod.HarmonyPatches
                 _pP.SetBestPredictedPP(_pP.NoPredictedPP);
                 if (PluginManager.GetPlugin("BetterSongList") != null) return;
                 DeleteSecondAndSubsequentLines(field);
-                double predictedStarNumber = await _star.GetPredictedStarNumber();
+                double predictedStarNumber = await _star.GetPredictedStarNumberAfterWaitingQueue();
                 if (predictedStarNumber == _star.SkipStarNumber
                     || predictedStarNumber == _star.ErrorStarNumber)
                     return;
@@ -96,7 +96,7 @@ namespace PredictStarNumberMod.HarmonyPatches
 
             try
             {
-                double predictedStarNumber = await _star.GetPredictedStarNumber();
+                double predictedStarNumber = await _star.GetPredictedStarNumberAfterWaitingQueue();
 
                 DeleteSecondAndSubsequentLines(field);
                 if (predictedStarNumber == _star.SkipStarNumber
@@ -127,7 +127,7 @@ namespace PredictStarNumberMod.HarmonyPatches
                 Plugin.Log.Info($"GetPercentage after awaiting _pP.AddQueueCalculatingAndSettingBestPP(percentage) : {percentage}");
 #endif
 
-                double bestPredictedPP = await _pP.GetBestPredictedPP();
+                double bestPredictedPP = await _pP.GetBestPredictedPPAfterWaitingQueue();
 #if DEBUG
                 Plugin.Log.Info($"bestPredictedPP : {bestPredictedPP}");
 #endif
