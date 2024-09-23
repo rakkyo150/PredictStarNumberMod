@@ -4,11 +4,13 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo(GeneratedStore.AssemblyVisibilityTarget)]
 namespace PredictStarNumberMod.Configuration
 {
-    internal class PluginConfig
+    public class PluginConfig
     {
         public static PluginConfig Instance { get; set; }
         public virtual bool Enable { get; set; } = true; // Must be 'virtual' if you want BSIPA to detect a value change and save the config automatically.
-        public virtual bool DisplayValueInRankMap { get; set; } = true;
+        public virtual bool DisplayBestPP { get; set; } = true;
+        public virtual bool DisplayNowPP { get; set; } = true;
+        public virtual bool DisplayValuesInRankMap { get; set; } = true;
         public virtual bool Overlay { get; set; } = true;
 
         /// <summary>
@@ -34,7 +36,9 @@ namespace PredictStarNumberMod.Configuration
         {
             // This instance's members populated from other
             this.Enable = other.Enable;
-            this.DisplayValueInRankMap = other.DisplayValueInRankMap;
+            this.DisplayBestPP = other.DisplayBestPP;
+            this.DisplayNowPP = other.DisplayNowPP;
+            this.DisplayValuesInRankMap = other.DisplayValuesInRankMap;
             this.Overlay = other.Overlay;
         }
     }

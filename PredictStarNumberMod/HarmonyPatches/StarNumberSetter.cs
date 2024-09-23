@@ -78,7 +78,11 @@ namespace PredictStarNumberMod.HarmonyPatches
                 return;
             }
 
-            if (!PluginConfig.Instance.DisplayValueInRankMap && IsRankedMap(___fields)) return;
+            if (!PluginConfig.Instance.DisplayValuesInRankMap && IsRankedMap(___fields))
+            {
+                _star.SetPredictedStarNumber(_star.SkipStarNumber);
+                return;
+            }
 
             bool isRankedMap = IsRankedMap(___fields);
 

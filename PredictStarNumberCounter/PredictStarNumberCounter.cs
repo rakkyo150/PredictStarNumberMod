@@ -5,7 +5,6 @@ using PredictStarNumberCounter.Configuration;
 using PredictStarNumberMod.PP;
 using PredictStarNumberMod.Star;
 using System;
-using System.Globalization;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -39,8 +38,8 @@ namespace PredictStarNumberCounter
         }
 
         public override void CounterInit()
-        {
-            string defaultValue = Format(0, PluginConfig.Instance.DecimalPrecision);
+        {            
+            if(!PredictStarNumberMod.Configuration.PluginConfig.Instance.Enable) return;
 
             if (PluginConfig.Instance.EnableLabel)
             {
@@ -58,19 +57,32 @@ namespace PredictStarNumberCounter
 
         private async Task AddPPAndStarInfo()
         {
+            await SetPredictedStarNumber();
+            await SetBestPredictedPP();
+        }
+
+        private async Task SetBestPredictedPP()
+        {
+            // なくても問題はないが、無駄な処理をなくすため
+            if (!PredictStarNumberMod.Configuration.PluginConfig.Instance.DisplayBestPP) return;
+
+            double bestPredictedPP = await _pP.GetBestPredictedPP();
+            bestPredictedPPString = bestPredictedPP.ToString($"F{PluginConfig.Instance.DecimalPrecision}") + "PP";
+            if (bestPredictedPP == _pP.NoPredictedPP)
+            {
+                bestPredictedPPString = "-";
+            }
+            _counter.text = MakeCounterText();
+        }
+
+        private async Task SetPredictedStarNumber()
+        {
             double predictedStarNumber = await _star.GetPredictedStarNumber();
-            predictedStarNumberString = predictedStarNumber.ToString("0.00");
+            predictedStarNumberString = predictedStarNumber.ToString($"F{PluginConfig.Instance.DecimalPrecision}");
             if (predictedStarNumber == _star.ErrorStarNumber || predictedStarNumber == _star.SkipStarNumber)
             {
                 predictedStarNumberString = "-";
             }
-            double bestPredictedPP = await _pP.GetBestPredictedPP();
-            bestPredictedPPString = bestPredictedPP.ToString("0.00") + "PP";
-            if (bestPredictedPP == _pP.NoPredictedPP)
-            {
-                bestPredictedPPString = "-";
-            }   
-            _counter.text = MakeCounterText();
         }
 
         private string MakeCounterText()
@@ -103,8 +115,13 @@ namespace PredictStarNumberCounter
 
         private async void ChangeNowPP()
         {
+            // なくても問題はないが、無駄な処理をなくすため
+            if (!PredictStarNumberMod.Configuration.PluginConfig.Instance.Enable) return;
+
+            if (!PredictStarNumberMod.Configuration.PluginConfig.Instance.DisplayNowPP) return;
+
             double nowPP = await _pP.CalculatePP(Convert.ToDouble(_relativeScoreAndImmediateRank.relativeScore));
-            nowPPString = nowPP.ToString("0.00") + "PP";
+            nowPPString = nowPP.ToString($"F{PluginConfig.Instance.DecimalPrecision}") + "PP";
             if (nowPP == _pP.NoPredictedPP)
             {
                 nowPPString = "-";
@@ -120,11 +137,6 @@ namespace PredictStarNumberCounter
         public override void CounterDestroy()
         {
 
-        }
-
-        private string Format(double StandardDeviation, int DecimalPrecision)
-        {
-            return StandardDeviation.ToString($"F{DecimalPrecision}", CultureInfo.InvariantCulture);
         }
 
         protected virtual void Dispose(bool disposing)
