@@ -5,6 +5,7 @@ using PredictStarNumberMod.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -41,6 +42,9 @@ namespace PredictStarNumberMod.Star
             {
                 this.predictedStarNumber = newPredictedStarNumber;
                 this.ChangedPredictedStarNumber?.Invoke(this.predictedStarNumber);
+                previoudMapHash = _mapDataContainer.MapHash;
+                preciousBeatmapDifficulty = _mapDataContainer.BeatmapDifficulty;
+                previousCharacteristic = _mapDataContainer.Characteristic;
 #if DEBUG
                 Plugin.Log.Info($"predictedStarNumber Changed : newPredictedStarNumber=={newPredictedStarNumber}");
 #endif
@@ -73,26 +77,16 @@ namespace PredictStarNumberMod.Star
             var sw = new System.Diagnostics.Stopwatch();
             sw.Start();
 #endif
-            try
-            {
-                await semaphore.WaitAsync();
-                try
+            try 
+            { 
+                Plugin.Log.Info($"previoudMapHash : {previoudMapHash}, _mapDataContainer.MapHash : {_mapDataContainer.MapHash}, preciousBeatmapDifficulty : {preciousBeatmapDifficulty}, _mapDataContainer.BeatmapDifficulty : {_mapDataContainer.BeatmapDifficulty}, previousCharacteristic : {previousCharacteristic}, _mapDataContainer.Characteristic : {_mapDataContainer.Characteristic}");
+                if (previoudMapHash == _mapDataContainer.MapHash && preciousBeatmapDifficulty == _mapDataContainer.BeatmapDifficulty
+                    && previousCharacteristic == _mapDataContainer.Characteristic)
                 {
-                    if (previoudMapHash == _mapDataContainer.MapHash && preciousBeatmapDifficulty == _mapDataContainer.BeatmapDifficulty
-                        && previousCharacteristic == _mapDataContainer.Characteristic)
-                    {
 #if DEBUG
-                        Plugin.Log.Info("Same data");
+                    Plugin.Log.Info("Same data");
 #endif
-                        return this.predictedStarNumber;
-                    }
-                    previoudMapHash = _mapDataContainer.MapHash;
-                    preciousBeatmapDifficulty = _mapDataContainer.BeatmapDifficulty;
-                    previousCharacteristic = _mapDataContainer.Characteristic;
-                }
-                finally
-                {
-                    semaphore.Release();
+                    return this.predictedStarNumber;
                 }
 
                 if (_model.ModelByte.Length == 1)
@@ -101,6 +95,8 @@ namespace PredictStarNumberMod.Star
                 }
 
                 _mapDataContainer.Data = await _mapDataContainer.GetMapData(_mapDataContainer.MapHash, _mapDataContainer.BeatmapDifficulty, _mapDataContainer.Characteristic);
+
+
                 if (_mapDataContainer.Data == _mapDataContainer.NoMapData) return this.SkipStarNumber;
 
                 if (_model.Session == null)
@@ -110,21 +106,21 @@ namespace PredictStarNumberMod.Star
                 string inputNoneName = _model.Session?.InputMetadata.First().Key;
                 double[] data = new double[15]
                 {
-                _mapDataContainer.Data.Bpm,
-                _mapDataContainer.Data.Duration,
-                _mapDataContainer.Data.Difficulty,
-                _mapDataContainer.Data.SageScore,
-                _mapDataContainer.Data.Njs,
-                _mapDataContainer.Data.Offset,
-                _mapDataContainer.Data.Notes,
-                _mapDataContainer.Data.Bombs,
-                _mapDataContainer.Data.Obstacles,
-                _mapDataContainer.Data.Nps,
-                _mapDataContainer.Data.Events,
-                _mapDataContainer.Data.Chroma,
-                _mapDataContainer.Data.Errors,
-                _mapDataContainer.Data.Warns,
-                _mapDataContainer.Data.Resets
+                    _mapDataContainer.Data.Bpm,
+                    _mapDataContainer.Data.Duration,
+                    _mapDataContainer.Data.Difficulty,
+                    _mapDataContainer.Data.SageScore,
+                    _mapDataContainer.Data.Njs,
+                    _mapDataContainer.Data.Offset,
+                    _mapDataContainer.Data.Notes,
+                    _mapDataContainer.Data.Bombs,
+                    _mapDataContainer.Data.Obstacles,
+                    _mapDataContainer.Data.Nps,
+                    _mapDataContainer.Data.Events,
+                    _mapDataContainer.Data.Chroma,
+                    _mapDataContainer.Data.Errors,
+                    _mapDataContainer.Data.Warns,
+                    _mapDataContainer.Data.Resets
                 };
 
 #if DEBUG
@@ -134,9 +130,9 @@ namespace PredictStarNumberMod.Star
 #endif
                 var inputTensor = new DenseTensor<double>(data, new int[] { 1, data.Length }, false);  // let's say data is fed into the Tensor objects
                 List<NamedOnnxValue> inputs = new List<NamedOnnxValue>()
-                    {
-                        NamedOnnxValue.CreateFromTensor<double>(inputNoneName, inputTensor)
-                    };
+                {
+                    NamedOnnxValue.CreateFromTensor<double>(inputNoneName, inputTensor)
+                };
                 using (var results = _model.Session?.Run(inputs))
                 {
                     return results.First().AsTensor<double>()[0];

@@ -14,6 +14,8 @@ namespace PredictStarNumberMod.HarmonyPatches
     {
         private readonly MapDataContainer _mapDataContainer;
 
+        private readonly object lockObject = new object();
+
         public MapDataGetter(MapDataContainer mapDataContainer)
         {
             _mapDataContainer = mapDataContainer;
@@ -35,9 +37,14 @@ namespace PredictStarNumberMod.HarmonyPatches
             if (!PluginConfig.Instance.Enable) return;
 
             string mapHash = GetHashOfLevel(____beatmapLevel);
-            _mapDataContainer.MapHash = mapHash;
-            _mapDataContainer.BeatmapDifficulty = __instance.beatmapKey.difficulty;
-            _mapDataContainer.Characteristic = __instance.beatmapKey.beatmapCharacteristic;
+            lock (lockObject)
+            {
+                _mapDataContainer.MapHash = mapHash;
+                _mapDataContainer.BeatmapDifficulty = __instance.beatmapKey.difficulty;
+                _mapDataContainer.Characteristic = __instance.beatmapKey.beatmapCharacteristic;
+            }
+
+            Plugin.Log?.Info($"MapDataGetter.Postfix: mapHash={mapHash}, BeatmapDifficulty={_mapDataContainer.BeatmapDifficulty}, Characteristic={_mapDataContainer.Characteristic}");
 
             // From BetterSongList.Util.BeatmapsUtil
             string GetHashOfLevel(BeatmapLevel level)
