@@ -211,8 +211,8 @@ namespace PredictStarNumberMod.HarmonyPatches
                 }
 
                 if (songDetails == null) songDetails = await SongDetailsCache.SongDetails.Init();
-                bool songExists = songDetails.songs.FindByHash(beatmapKey.GetHashCode().ToString(), out var song);
-                bool difficyltyExits = song.GetDifficulty(out var difficulty, (SongDetailsCache.Structs.MapDifficulty)beatmapKey.difficulty,
+                bool songExists = songDetails.songs.FindByHash(GetHashOfLevel(beatmapKey), out SongDetailsCache.Structs.Song song);
+                bool difficyltyExits = song.GetDifficulty(out SongDetailsCache.Structs.SongDifficulty difficulty, (SongDetailsCache.Structs.MapDifficulty)beatmapKey.difficulty,
                     (SongDetailsCache.Structs.MapCharacteristic)this.GetCharacteristicFromDifficulty(beatmapKey));
                 if (!songExists || !difficyltyExits)
                 {
@@ -220,7 +220,7 @@ namespace PredictStarNumberMod.HarmonyPatches
                     return;
                 }
 
-                if (difficulty.stars > 0)
+                if (difficulty.song.rankedStates == SongDetailsCache.Structs.RankedStates.ScoresaberRanked)
                 {
                     _star.SetPredictedStarNumber(_star.SkipStarNumber);
                     return;
@@ -233,6 +233,20 @@ namespace PredictStarNumberMod.HarmonyPatches
                 Plugin.Log.Error(ex);
                 _star.SetPredictedStarNumber(_star.ErrorStarNumber);
             }
+        }
+
+        private string GetHashOfLevel(BeatmapKey beatmapKey)
+        {
+            string id = beatmapKey.levelId;
+
+            if (id.Length < 53)
+                return null;
+
+            if (id[12] != '_') // custom_level_<hash, 40 chars>
+                return null;
+
+            Plugin.Log.Info($"id : {id.Substring(13, 40)}");
+            return id.Substring(13, 40);
         }
 
         private int GetCharacteristicFromDifficulty(BeatmapKey diff)
