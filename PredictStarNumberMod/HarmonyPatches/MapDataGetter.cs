@@ -10,15 +10,15 @@ namespace PredictStarNumberMod.HarmonyPatches
     /// <summary>
     /// This patches ClassToPatch.MethodToPatch(Parameter1Type arg1, Parameter2Type arg2)
     /// </summary>
-    public class MapDataGetter: IAffinity
+    public class MapDataGetter : IAffinity
     {
         private readonly MapDataContainer _mapDataContainer;
-        
+
         public MapDataGetter(MapDataContainer mapDataContainer)
         {
             _mapDataContainer = mapDataContainer;
         }
-        
+
         /// <summary>
         /// This code is run before the original code in MethodToPatch is run.
         /// </summary>

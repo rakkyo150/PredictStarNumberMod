@@ -1,12 +1,12 @@
-﻿using Microsoft.ML.OnnxRuntime.Tensors;
-using Microsoft.ML.OnnxRuntime;
+﻿using Microsoft.ML.OnnxRuntime;
+using Microsoft.ML.OnnxRuntime.Tensors;
 using PredictStarNumberMod.Map;
+using PredictStarNumberMod.Utilities;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Linq;
-using PredictStarNumberMod.Utilities;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace PredictStarNumberMod.Star
 {
@@ -50,7 +50,7 @@ namespace PredictStarNumberMod.Star
         public async Task<double> GetPredictedStarNumber()
         {
             await _orderedAsyncTaskQueue.WaitUntilQueueEmptyAsync();
-            
+
             lock (lockObject)
             {
                 return this.predictedStarNumber;

@@ -65,7 +65,7 @@ namespace PredictStarNumberMod.HarmonyPatches
             }
 
             if (!PluginConfig.Instance.Enable)
-            {                
+            {
                 // In oreder to hide overlay
                 _star.SetPredictedStarNumber(_star.SkipStarNumber);
                 return;
@@ -105,7 +105,7 @@ namespace PredictStarNumberMod.HarmonyPatches
                 Plugin.Log.Info("Start AddQueuePredictingStarNumber by BetterSongList");
 #endif
                 double predictedStarNumber = await _star.AddQueuePredictingAndSettingStarNumber();
-                
+
                 if (predictedStarNumber == _star.ErrorStarNumber)
                 {
                     if (isRankedMap)

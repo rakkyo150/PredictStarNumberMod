@@ -6,7 +6,7 @@ using PluginConfig = PredictStarNumberMod.Configuration.PluginConfig;
 
 namespace PredictStarNumberMod.Overlay
 {
-    internal class HttpStatus: IInitializable, IDisposable
+    internal class HttpStatus : IInitializable, IDisposable
     {
         private bool _disposedValue;
         private readonly IStatusManager _statusManager;
@@ -38,7 +38,7 @@ namespace PredictStarNumberMod.Overlay
                 this.predictedStarOverlayStatus = OverlayStatus.Hide;
                 return;
             }
-            
+
             _statusManager.OtherJSON["PredictedStar"] = predictedStarNumber;
             _statusManager.EmitStatusUpdate(ChangedProperty.Other, BeatSaberEvent.Other);
 

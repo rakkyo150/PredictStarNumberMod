@@ -8,7 +8,7 @@ using static PredictStarNumberMod.PP.PP;
 
 namespace PredictStarNumberMod.PP
 {
-    public class CurveDownloader: IInitializable
+    public class CurveDownloader : IInitializable
     {
         public bool CurvesDownloadFinished { get; private set; } = false;
         public Curves Curves { get; private set; } = null;

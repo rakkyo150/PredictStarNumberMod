@@ -1,5 +1,5 @@
-﻿using PredictStarNumberMod.Configuration;
-using IPA.Loader;
+﻿using IPA.Loader;
+using PredictStarNumberMod.Configuration;
 using SiraUtil.Affinity;
 using System;
 using System.Threading;
@@ -12,7 +12,7 @@ using UnityEngine;
 /// </summary>
 namespace PredictStarNumberMod.HarmonyPatches
 {
-    public class LevelStatsViewPatch: IAffinity
+    public class LevelStatsViewPatch : IAffinity
     {
         private Vector2 originalAnchoredPosition = new Vector2((float)12.00, (float)-3.80);
         private Vector2 modifiedAnchordPostion = new Vector2((float)12.00, (float)-5.30);
@@ -126,7 +126,7 @@ namespace PredictStarNumberMod.HarmonyPatches
 #if DEBUG
                 Plugin.Log.Info($"GetPercentage after awaiting _pP.AddQueueCalculatingAndSettingBestPP(percentage) : {percentage}");
 #endif
-                
+
                 double bestPredictedPP = await _pP.GetBestPredictedPP();
 #if DEBUG
                 Plugin.Log.Info($"bestPredictedPP : {bestPredictedPP}");
@@ -145,7 +145,7 @@ namespace PredictStarNumberMod.HarmonyPatches
                     ChangeFieldHeightForSecondAndSubsequentLines(rectTransform);
                     return;
                 }
-                
+
                 DeleteSecondAndSubsequentLines(field);
                 if (PluginManager.GetPlugin("BetterSongList") == null)
                 {
@@ -210,7 +210,7 @@ namespace PredictStarNumberMod.HarmonyPatches
                     return;
                 }
 
-                if(songDetails == null) songDetails = await SongDetailsCache.SongDetails.Init();
+                if (songDetails == null) songDetails = await SongDetailsCache.SongDetails.Init();
                 bool songExists = songDetails.songs.FindByHash(beatmapKey.GetHashCode().ToString(), out var song);
                 bool difficyltyExits = song.GetDifficulty(out var difficulty, (SongDetailsCache.Structs.MapDifficulty)beatmapKey.difficulty,
                     (SongDetailsCache.Structs.MapCharacteristic)this.GetCharacteristicFromDifficulty(beatmapKey));

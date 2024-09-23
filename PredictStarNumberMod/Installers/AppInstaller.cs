@@ -2,8 +2,6 @@
 using PredictStarNumberMod.Map;
 using PredictStarNumberMod.Overlay;
 using PredictStarNumberMod.PP;
-using PredictStarNumberMod.Star;
-using PredictStarNumberMod.Utilities;
 using Zenject;
 
 namespace PredictStarNumberMod.Installers

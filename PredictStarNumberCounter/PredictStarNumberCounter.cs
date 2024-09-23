@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace PredictStarNumberCounter
 {
-    internal class PredictStarNumberCounter: BasicCustomCounter, INoteEventHandler, IDisposable
+    internal class PredictStarNumberCounter : BasicCustomCounter, INoteEventHandler, IDisposable
     {
         private readonly Star _star;
         private readonly PP _pP;
@@ -38,8 +38,8 @@ namespace PredictStarNumberCounter
         }
 
         public override void CounterInit()
-        {            
-            if(!PredictStarNumberMod.Configuration.PluginConfig.Instance.Enable) return;
+        {
+            if (!PredictStarNumberMod.Configuration.PluginConfig.Instance.Enable) return;
 
             if (PluginConfig.Instance.EnableLabel)
             {
@@ -85,6 +85,22 @@ namespace PredictStarNumberCounter
             }
         }
 
+        private async void ChangeNowPP()
+        {
+            // なくても問題はないが、無駄な処理をなくすため
+            if (!PredictStarNumberMod.Configuration.PluginConfig.Instance.Enable) return;
+
+            if (!PredictStarNumberMod.Configuration.PluginConfig.Instance.DisplayNowPP) return;
+
+            double nowPP = await _pP.CalculatePP(Convert.ToDouble(_relativeScoreAndImmediateRank.relativeScore));
+            nowPPString = nowPP.ToString($"F{PluginConfig.Instance.DecimalPrecision}") + "PP";
+            if (nowPP == _pP.NoPredictedPP)
+            {
+                nowPPString = "-";
+            }
+            _counter.text = MakeCounterText();
+        }
+
         private string MakeCounterText()
         {
             switch (PluginConfig.Instance.Display)
@@ -108,36 +124,11 @@ namespace PredictStarNumberCounter
             }
         }
 
-        public void OnNoteCut(NoteData data, NoteCutInfo info)
-        {
+        public void OnNoteCut(NoteData data, NoteCutInfo info) { }
 
-        }
+        public void OnNoteMiss(NoteData data) { }
 
-        private async void ChangeNowPP()
-        {
-            // なくても問題はないが、無駄な処理をなくすため
-            if (!PredictStarNumberMod.Configuration.PluginConfig.Instance.Enable) return;
-
-            if (!PredictStarNumberMod.Configuration.PluginConfig.Instance.DisplayNowPP) return;
-
-            double nowPP = await _pP.CalculatePP(Convert.ToDouble(_relativeScoreAndImmediateRank.relativeScore));
-            nowPPString = nowPP.ToString($"F{PluginConfig.Instance.DecimalPrecision}") + "PP";
-            if (nowPP == _pP.NoPredictedPP)
-            {
-                nowPPString = "-";
-            }
-            _counter.text = MakeCounterText();
-        }
-
-        public void OnNoteMiss(NoteData data)
-        {
-
-        }
-
-        public override void CounterDestroy()
-        {
-
-        }
+        public override void CounterDestroy() { }
 
         protected virtual void Dispose(bool disposing)
         {
