@@ -82,8 +82,8 @@ namespace PredictStarNumberMod.HarmonyPatches
             {
                 _pP.SetBestPredictedPP(_pP.NoPredictedPP);
                 if (PluginManager.GetPlugin("BetterSongList") != null) return;
-                DeleteSecondAndSubsequentLines(field);
                 double predictedStarNumber = await _star.GetPredictedStarNumberAfterWaitingQueue();
+                DeleteSecondAndSubsequentLines(field);
                 if (predictedStarNumber == _star.SkipStarNumber
                     || predictedStarNumber == _star.ErrorStarNumber)
                     return;
@@ -216,7 +216,7 @@ namespace PredictStarNumberMod.HarmonyPatches
                     (SongDetailsCache.Structs.MapCharacteristic)this.GetCharacteristicFromDifficulty(beatmapKey));
                 if (!songExists || !difficyltyExits)
                 {
-                    await _star.AddQueuePredictingAndSettingStarNumber();
+                    await _star.AddQueueSettingSkipStarNumber();
                     return;
                 }
 
