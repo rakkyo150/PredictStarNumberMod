@@ -7,6 +7,10 @@ namespace PredictStarNumberMod.Map
 {
     public class MapDataContainer
     {
+        internal MapData NoMapData { get; } = new MapData(float.MinValue, float.MinValue, int.MinValue,
+            int.MinValue, float.MinValue, float.MinValue, int.MinValue, int.MinValue, int.MinValue, float.MinValue, int.MinValue,
+            int.MinValue, int.MinValue, int.MinValue, int.MinValue);
+        
         internal string MapHash { get; set; } = string.Empty;
         internal BeatmapDifficulty BeatmapDifficulty { get; set; } = BeatmapDifficulty.Easy;
         internal BeatmapCharacteristicSO Characteristic { get; set; } = null;
@@ -40,6 +44,8 @@ namespace PredictStarNumberMod.Map
             string jsonString = await response.Content.ReadAsStringAsync();
             MapDetail mapDetail = JsonConvert.DeserializeObject<MapDetail>(jsonString);
             client.Dispose();
+
+            if (mapDetail.versions == null) return NoMapData;
 
             IList<Version> versions = mapDetail.versions;
             IList<Difficulty> difficulties = versions[versions.Count - 1].diffs;

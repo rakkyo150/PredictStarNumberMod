@@ -99,7 +99,10 @@ namespace PredictStarNumberMod.Star
                 {
                     _model.ModelByte = await _model.GetModel();
                 }
+                
                 _mapDataContainer.Data = await _mapDataContainer.GetMapData(_mapDataContainer.MapHash, _mapDataContainer.BeatmapDifficulty, _mapDataContainer.Characteristic);
+                if(_mapDataContainer.Data == _mapDataContainer.NoMapData) return this.SkipStarNumber;
+                
                 if (_model.Session == null)
                 {
                     _model.Session = new InferenceSession(_model.ModelByte);
