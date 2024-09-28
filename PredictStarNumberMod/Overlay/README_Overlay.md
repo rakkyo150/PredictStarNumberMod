@@ -14,7 +14,7 @@
     </span>
 </div>
 ```
-また、以下の内容もコピーして、少なくとも<div id="overlay" class="hidden">より下の階層のどこかにペーストしてください。  
+また、以下の内容もコピーして、少なくとも`<div id="overlay" class="hidden">`より下の階層のどこかにペーストしてください。  
 おすすめは、`<div id="meta">`より下の階層のどこかへのペーストです。
 ```html
 <div id="predicted_star_mod_group">
