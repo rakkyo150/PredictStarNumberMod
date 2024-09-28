@@ -2,7 +2,7 @@
 
 ## 使い方
 お使いのPCのbeat-saber-overlayのフォルダーにリリースのbeat-saber-overlayのフォルダーの中身を上書きしてください。  
-以下の内容をコピーして、`https://github.com/rynan4818/beat-saber-overlay`に準拠したhtml内の、少なくとも`<div id="overlay" class="hidden">`より下の階層のどこかにペーストしてください。  
+以下の内容をコピーして、[beat-saber-overlay](https://github.com/rynan4818/beat-saber-overlay)に準拠したhtml内の、少なくとも`<div id="overlay" class="hidden">`より下の階層のどこかにペーストしてください。  
 おすすめは、`<div id="performance">`より下の階層のどこかへのペーストです。
 ```html
 <div class="performance_group" id="now_predicted_pp_group">
@@ -14,7 +14,7 @@
     </span>
 </div>
 ```
-また、以下の内容もコピーして、少なくとも`<div id="overlay" class="hidden">`より下の階層のどこかにペーストしてください。  
+また、以下の内容もコピーして、[beat-saber-overlay](https://github.com/rynan4818/beat-saber-overlay)に準拠したhtml内の、少なくとも`<div id="overlay" class="hidden">`より下の階層のどこかにペーストしてください。  
 おすすめは、`<div id="meta">`より下の階層のどこかへのペーストです。
 ```html
 <div id="predicted_star_mod_group">
@@ -26,12 +26,12 @@
     </span>
 </div>
 ```
-以下の内容もコピーして、`https://github.com/rynan4818/beat-saber-overlay`に準拠したhtml内の`<script src="./js/options.js"></script>`の上にペーストしてください。
+以下の内容もコピーして、[beat-saber-overlay](https://github.com/rynan4818/beat-saber-overlay)に準拠したhtml内の`<script src="./js/options.js"></script>`の上にペーストしてください。
 ```html
 <script src="./js/predicted_star.js"></script>
 ```
 その上で、[URLパラメータ](https://github.com/rynan4818/beat-saber-overlay#%E3%82%AA%E3%83%97%E3%82%B7%E3%83%A7%E3%83%B3)の`modifiers`に`predicted_star`を追加すれば、表示されるようになるはずです。  
-[サンプルのHTML](sample.html)も同梱しているので、そちらも参考にしてください。  
+[サンプルのHTML](sample.html)もリリースに同梱しているので、そちらを参考にしていただくか、そのまま使用していただくことも可能です。
 
 ## コピー内容の意味
 URLパラメータを追加しない場合の非表示の範囲は`<div class="performance_group" id="now_predicted_pp_group">`より下の階層と`<div id="predicted_star_mod_group">`より下の階層です。  
