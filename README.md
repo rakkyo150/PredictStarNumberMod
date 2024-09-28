@@ -25,7 +25,7 @@ BetterSongListを使用しない場合は以下のように表示されます。
 ## 使い方
 PredictStarNumberModの設定は、カスタムカウンターとオーバーレイにも影響するので、もし変更する場合は注意してください。<br>
 カスタムカウンター(PredictStarNumberCounter)の設定は、Counters+の設定画面から行ってください。<br>
-オーバーレイに関しては、[こちら](PredictStarNumberMod\Overlay\README_Overlay.md)を参照してください。<br>
+オーバーレイに関しては、[こちら](PredictStarNumberMod/Overlay/README_Overlay.md)を参照してください。<br>
 併せて、[beat-saber-overlayのREADME](https://github.com/rynan4818/beat-saber-overlay)を参照してください。<br>
 
 ## 依存Mod
