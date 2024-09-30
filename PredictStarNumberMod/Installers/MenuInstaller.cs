@@ -12,7 +12,12 @@ namespace PredictStarNumberMod.Installers
             Container.BindInterfacesTo<MapDataGetter>().AsSingle();
             Container.BindInterfacesTo<LevelStatsViewPatch>().AsSingle();
 
-            if (PluginManager.GetPlugin("BetterSongList") == null) return;
+            if (PluginManager.GetPlugin("BetterSongList") == null)
+            {
+                Plugin.Log?.Info("BetterSongList Not Found");
+                return;
+            }
+
             Container.BindInterfacesTo<StarNumberSetter>().AsSingle();
         }
     }

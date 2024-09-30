@@ -138,9 +138,13 @@ namespace PredictStarNumberMod.HarmonyPatches
 
         private async Task SetSkipStarNumberAndQuestionMark(TextMeshProUGUI[] fields)
         {
+#if DEBUG
             Plugin.Log.Info("Start AddQueueSettingSkipStarNumber");
+#endif
             double _ = await _star.AddQueueSettingSkipStarNumber();
+#if DEBUG
             Plugin.Log.Info("Finish AddQueueSettingSkipStarNumber");
+#endif
             lock (lockField)
             {
                 fields[1].text = "?";

@@ -238,7 +238,11 @@ namespace PredictStarNumberMod.HarmonyPatches
                     return;
                 }
 
-                if (songDetails == null) songDetails = await SongDetailsCache.SongDetails.Init();
+                if (songDetails == null)
+                {
+                    Plugin.Log.Info("SongDetailsCache not found");
+                    songDetails = await SongDetailsCache.SongDetails.Init();
+                }
                 bool songExists = songDetails.songs.FindByHash(GetHashOfLevel(beatmapKey), out SongDetailsCache.Structs.Song song);
                 bool difficyltyExits = song.GetDifficulty(out SongDetailsCache.Structs.SongDifficulty difficulty, (SongDetailsCache.Structs.MapDifficulty)beatmapKey.difficulty,
                     (SongDetailsCache.Structs.MapCharacteristic)this.GetCharacteristicFromDifficulty(beatmapKey));
@@ -272,8 +276,9 @@ namespace PredictStarNumberMod.HarmonyPatches
 
             if (id[12] != '_') // custom_level_<hash, 40 chars>
                 return null;
-
+#if DEBUG
             Plugin.Log.Info($"id : {id.Substring(13, 40)}");
+#endif
             return id.Substring(13, 40);
         }
 

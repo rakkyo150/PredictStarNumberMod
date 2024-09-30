@@ -17,9 +17,12 @@ namespace PredictStarNumberMod.Installers
             Container.Bind<PP.PP>().AsSingle();
 
             // すべてのModのEnable後に実行されるっぽいので、よほどのことが無ければこれで依存関係問題ないはず
-            if (PluginManager.GetPlugin("HttpSiraStatus") == null) return;
+            if (PluginManager.GetPlugin("HttpSiraStatus") == null)
+            {
+                Plugin.Log?.Info("HttpSiraStatus Not Found");
+                return;
+            }
 
-            Plugin.Log?.Info("HttpSiraStatus found");
             Container.BindInterfacesAndSelfTo<HttpStatus>().AsSingle();
         }
     }

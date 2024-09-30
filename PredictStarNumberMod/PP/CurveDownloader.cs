@@ -49,6 +49,7 @@ namespace PredictStarNumberMod.PP
             Curves result = await this.MakeWebRequest<Curves>(uri);
             this.Curves = result;
             this.CurvesDownloadFinished = true;
+            Plugin.Log?.Info("Curves download finished");
         }
 
         private async Task<T> MakeWebRequest<T>(string uri)
