@@ -20,7 +20,8 @@ namespace PredictStarNumberMod.HarmonyPatches
 
         private RectTransform rectTransform;
 
-        private SongDetailsCache.SongDetails songDetails;
+        // オブジェクトにしないとZenjectで実行時エラーが出る
+        private object songDetailsInstance;
 
         private readonly object lockField = new object();
 
@@ -69,9 +70,7 @@ namespace PredictStarNumberMod.HarmonyPatches
         private async Task wrapper(TextMeshProUGUI field, BeatmapKey beatmapKey, PlayerData playerData)
         {
             if (PluginManager.GetPlugin("BetterSongList") == null)
-            {
                 await SetStarNumberWithoutBetterSongList(beatmapKey);
-            }
 
             double percentage = await GetPercentage(beatmapKey, playerData);
             _pP.SetAccuracy(percentage);
@@ -230,20 +229,26 @@ namespace PredictStarNumberMod.HarmonyPatches
 
         private async Task SetStarNumberWithoutBetterSongList(BeatmapKey beatmapKey)
         {
+            if (PluginConfig.Instance.DisplayValuesInRankMap || PluginManager.GetPlugin("SongDetailsCache") == null)
+            {
+                await _star.AddQueuePredictingAndSettingStarNumber();
+                return;
+            }
+
+            // 別メソッドにしないと、SongDetailsCacheがないことによる実行時エラーが出て途中で止まるっぽい
+            await SetStarNumberWithoutBetterSongListAndSongDetailsCache(beatmapKey);
+        }
+
+        private async Task SetStarNumberWithoutBetterSongListAndSongDetailsCache(BeatmapKey beatmapKey)
+        {
             try
             {
-                if (PluginConfig.Instance.DisplayValuesInRankMap || PluginManager.GetPluginFromId("SongDetailsCache") == null)
+                if (songDetailsInstance == null)
                 {
-                    await _star.AddQueuePredictingAndSettingStarNumber();
-                    return;
+                    Plugin.Log.Info("SongDetailsCache is needed and found");
+                    songDetailsInstance = await SongDetailsCache.SongDetails.Init();
                 }
-
-                if (songDetails == null)
-                {
-                    Plugin.Log.Info("SongDetailsCache not found");
-                    songDetails = await SongDetailsCache.SongDetails.Init();
-                }
-                bool songExists = songDetails.songs.FindByHash(GetHashOfLevel(beatmapKey), out SongDetailsCache.Structs.Song song);
+                bool songExists = ((SongDetailsCache.SongDetails)songDetailsInstance).songs.FindByHash(GetHashOfLevel(beatmapKey), out SongDetailsCache.Structs.Song song);
                 bool difficyltyExits = song.GetDifficulty(out SongDetailsCache.Structs.SongDifficulty difficulty, (SongDetailsCache.Structs.MapDifficulty)beatmapKey.difficulty,
                     (SongDetailsCache.Structs.MapCharacteristic)this.GetCharacteristicFromDifficulty(beatmapKey));
                 if (!songExists || !difficyltyExits)
