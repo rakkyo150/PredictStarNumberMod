@@ -251,13 +251,19 @@ namespace PredictStarNumberMod.HarmonyPatches
                 bool songExists = ((SongDetailsCache.SongDetails)songDetailsInstance).songs.FindByHash(GetHashOfLevel(beatmapKey), out SongDetailsCache.Structs.Song song);
                 bool difficyltyExits = song.GetDifficulty(out SongDetailsCache.Structs.SongDifficulty difficulty, (SongDetailsCache.Structs.MapDifficulty)beatmapKey.difficulty,
                     (SongDetailsCache.Structs.MapCharacteristic)this.GetCharacteristicFromDifficulty(beatmapKey));
+#if DEBUG
+                Plugin.Log.Info("songExists : " + songExists + ", difficyltyExits : " + difficyltyExits);
+#endif
                 if (!songExists || !difficyltyExits)
                 {
                     await _star.AddQueueSettingSkipStarNumber();
                     return;
                 }
 
-                if (difficulty.song.rankedStates == SongDetailsCache.Structs.RankedStates.ScoresaberRanked)
+#if DEBUG
+                Plugin.Log.Info("RankedStates : " + difficulty.song.rankedStates.ToString());
+#endif
+                if (difficulty.song.rankedStates.HasFlag(SongDetailsCache.Structs.RankedStates.ScoresaberRanked))
                 {
                     _star.SetPredictedStarNumber(_star.SkipStarNumber);
                     return;
