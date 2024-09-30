@@ -32,35 +32,30 @@ namespace PredictStarNumberMod.HarmonyPatches
         [AffinityBefore(new string[] { "Kinsi55.BeatSaber.BetterSongList" })] // If another mod patches this method, apply this patch after the other mod's.
         [AffinityPatch(typeof(StandardLevelDetailView), nameof(StandardLevelDetailView.RefreshContent))]
         [AffinityPostfix]
-        protected void Postfix(StandardLevelDetailView __instance, BeatmapLevel ____beatmapLevel)
+        protected void Postfix(StandardLevelDetailView __instance, IDifficultyBeatmap ____selectedDifficultyBeatmap)
         {
             if (!PluginConfig.Instance.Enable) return;
 
-            string mapHash = GetHashOfLevel(____beatmapLevel);
+            string mapHash = GetHashOfPreview(____selectedDifficultyBeatmap.level);
             lock (lockMapData)
             {
                 _mapDataContainer.MapHash = mapHash;
-                _mapDataContainer.BeatmapDifficulty = __instance.beatmapKey.difficulty;
-                _mapDataContainer.Characteristic = __instance.beatmapKey.beatmapCharacteristic;
+                _mapDataContainer.BeatmapDifficulty = ____selectedDifficultyBeatmap.difficulty;
+                _mapDataContainer.Characteristic = ____selectedDifficultyBeatmap.parentDifficultyBeatmapSet.beatmapCharacteristic;
             }
 
             Plugin.Log?.Info($"MapDataGetter.Postfix: mapHash={mapHash}, BeatmapDifficulty={_mapDataContainer.BeatmapDifficulty}, Characteristic={_mapDataContainer.Characteristic}");
 
             // From BetterSongList.Util.BeatmapsUtil
-            string GetHashOfLevel(BeatmapLevel level)
+            string GetHashOfPreview(IPreviewBeatmapLevel preview)
             {
-                return level == null ? null : GetHashOfLevelId(level.levelID);
-            }
-
-            string GetHashOfLevelId(string id)
-            {
-                if (id.Length < 53)
+                if (preview.levelID.Length < 53)
                     return null;
 
-                if (id[12] != '_') // custom_level_<hash, 40 chars>
+                if (preview.levelID[12] != '_') // custom_level_<hash, 40 chars>
                     return null;
 
-                return id.Substring(13, 40);
+                return preview.levelID.Substring(13, 40);
             }
         }
     }

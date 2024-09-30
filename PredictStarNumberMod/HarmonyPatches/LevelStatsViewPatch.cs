@@ -26,18 +26,13 @@ namespace PredictStarNumberMod.HarmonyPatches
 
         private readonly PP.PP _pP;
         private readonly Star.Star _star;
-        private readonly BeatmapLevelLoader _beatmapLevelLoader;
         private readonly StandardLevelDetailViewController _standardLevelDetailViewController;
-        private readonly BeatmapLevelsEntitlementModel _beatmapLevelsEntitlementModel;
-        private readonly BeatmapDataLoader _beatmapDataLoader = new BeatmapDataLoader();
 
-        public LevelStatsViewPatch(PP.PP pP, Star.Star star, BeatmapLevelLoader beatmapLevelLoader, StandardLevelDetailViewController standardLevelDetailViewController, BeatmapLevelsEntitlementModel beatmapLevelsEntitlementModel)
+        public LevelStatsViewPatch(PP.PP pP, Star.Star star, StandardLevelDetailViewController standardLevelDetailViewController)
         {
             _pP = pP;
             _star = star;
-            _beatmapLevelLoader = beatmapLevelLoader;
             _standardLevelDetailViewController = standardLevelDetailViewController;
-            _beatmapLevelsEntitlementModel = beatmapLevelsEntitlementModel;
         }
 
         [AffinityPatch(typeof(LevelStatsView), nameof(LevelStatsView.ShowStats))]
@@ -60,20 +55,20 @@ namespace PredictStarNumberMod.HarmonyPatches
         [AffinityPatch(typeof(LevelStatsView), nameof(LevelStatsView.ShowStats))]
         [AffinityPrefix]
         // Entrypoint
-        protected void Postfix(ref TextMeshProUGUI ____highScoreText, BeatmapKey beatmapKey, PlayerData playerData)
+        protected void Postfix(ref TextMeshProUGUI ____highScoreText, IDifficultyBeatmap difficultyBeatmap, PlayerData playerData)
         {
             if (!PluginConfig.Instance.Enable) return;
-            wrapper(____highScoreText, beatmapKey, playerData);
+            wrapper(____highScoreText, difficultyBeatmap, playerData);
         }
 
-        private async Task wrapper(TextMeshProUGUI field, BeatmapKey beatmapKey, PlayerData playerData)
+        private async Task wrapper(TextMeshProUGUI field, IDifficultyBeatmap difficultyBeatmap, PlayerData playerData)
         {
             if (PluginManager.GetPlugin("BetterSongList") == null)
             {
-                await SetStarNumberWithoutBetterSongList(beatmapKey);
+                await SetStarNumberWithoutBetterSongList(difficultyBeatmap);
             }
 
-            double percentage = await GetPercentage(beatmapKey, playerData);
+            double percentage = await GetPercentage(difficultyBeatmap, playerData);
             _pP.SetAccuracy(percentage);
 #if DEBUG
             Plugin.Log.Info("GetPercentage : " + percentage.ToString());
@@ -203,13 +198,11 @@ namespace PredictStarNumberMod.HarmonyPatches
             }    
         }
 
-        // 高速で譜面切り替えると、譜面が完全に切り替わっていない瞬間は変な値が返ってくることがある？
-        // スレッドセーフにしてる途中からなくなったかも
-        private async Task<double> GetPercentage(BeatmapKey beatmapKey, PlayerData playerData)
+        private async Task<double> GetPercentage(IDifficultyBeatmap difficultyBeatmap, PlayerData playerData)
         {
             if (playerData == null) return neverClearPercentage;
 
-            PlayerLevelStatsData playerLevelStatsData = playerData.TryGetPlayerLevelStatsData(in beatmapKey);
+            PlayerLevelStatsData playerLevelStatsData = playerData.GetPlayerLevelStatsData(difficultyBeatmap.level.levelID, difficultyBeatmap.difficulty, difficultyBeatmap.parentDifficultyBeatmapSet.beatmapCharacteristic);
 
             if (playerLevelStatsData == null) return neverClearPercentage;
 
@@ -217,18 +210,15 @@ namespace PredictStarNumberMod.HarmonyPatches
 
             int highscore = playerLevelStatsData.highScore;
 
-            BeatmapLevel beatmapLevel = _standardLevelDetailViewController.beatmapLevel;
-            BeatmapLevelDataVersion beatmapLevelDataVersion = await _beatmapLevelsEntitlementModel.GetLevelDataVersionAsync(beatmapLevel.levelID, CancellationToken.None);
-            LoadBeatmapLevelDataResult beatmapLevelData = await _beatmapLevelLoader.LoadBeatmapLevelDataAsync(beatmapLevel, beatmapLevelDataVersion, CancellationToken.None);
-            IReadonlyBeatmapData currentReadonlyBeatmapData = await _beatmapDataLoader.LoadBeatmapDataAsync(beatmapLevelData.beatmapLevelData, beatmapKey, beatmapLevel.beatsPerMinute, true, null, beatmapLevelDataVersion, playerData.gameplayModifiers, playerData.playerSpecificSettings, false);
-
+            EnvironmentInfoSO currentEnvironmentInfoSO = difficultyBeatmap.GetEnvironmentInfo();
+            IReadonlyBeatmapData currentReadonlyBeatmapData = await difficultyBeatmap.GetBeatmapDataAsync(currentEnvironmentInfoSO, playerData.playerSpecificSettings);
             int currentDifficultyMaxScore = ScoreModel.ComputeMaxMultipliedScoreForBeatmap(currentReadonlyBeatmapData);
             double resultPercentage = (double)((double)highscore / (double)currentDifficultyMaxScore);
 
             return resultPercentage;
         }
 
-        private async Task SetStarNumberWithoutBetterSongList(BeatmapKey beatmapKey)
+        private async Task SetStarNumberWithoutBetterSongList(IDifficultyBeatmap difficultyBeatmap)
         {
             try
             {
@@ -239,9 +229,9 @@ namespace PredictStarNumberMod.HarmonyPatches
                 }
 
                 if (songDetails == null) songDetails = await SongDetailsCache.SongDetails.Init();
-                bool songExists = songDetails.songs.FindByHash(GetHashOfLevel(beatmapKey), out SongDetailsCache.Structs.Song song);
-                bool difficyltyExits = song.GetDifficulty(out SongDetailsCache.Structs.SongDifficulty difficulty, (SongDetailsCache.Structs.MapDifficulty)beatmapKey.difficulty,
-                    (SongDetailsCache.Structs.MapCharacteristic)this.GetCharacteristicFromDifficulty(beatmapKey));
+                bool songExists = songDetails.songs.FindByHash(GetHashOfPreview(difficultyBeatmap.level), out SongDetailsCache.Structs.Song song);
+                bool difficyltyExits = song.GetDifficulty(out SongDetailsCache.Structs.SongDifficulty difficulty, (SongDetailsCache.Structs.MapDifficulty)difficultyBeatmap.difficulty,
+                    (SongDetailsCache.Structs.MapCharacteristic)this.GetCharacteristicFromDifficulty(difficultyBeatmap));
                 if (!songExists || !difficyltyExits)
                 {
                     await _star.AddQueueSettingSkipStarNumber();
@@ -263,23 +253,20 @@ namespace PredictStarNumberMod.HarmonyPatches
             }
         }
 
-        private string GetHashOfLevel(BeatmapKey beatmapKey)
+        private string GetHashOfPreview(IPreviewBeatmapLevel preview)
         {
-            string id = beatmapKey.levelId;
-
-            if (id.Length < 53)
+            if (preview.levelID.Length < 53)
                 return null;
 
-            if (id[12] != '_') // custom_level_<hash, 40 chars>
+            if (preview.levelID[12] != '_') // custom_level_<hash, 40 chars>
                 return null;
 
-            Plugin.Log.Info($"id : {id.Substring(13, 40)}");
-            return id.Substring(13, 40);
+            return preview.levelID.Substring(13, 40);
         }
 
-        private int GetCharacteristicFromDifficulty(BeatmapKey diff)
+        private int GetCharacteristicFromDifficulty(IDifficultyBeatmap diff)
         {
-            var d = diff.beatmapCharacteristic?.sortingOrder;
+            var d = diff.parentDifficultyBeatmapSet?.beatmapCharacteristic.sortingOrder;
 
             if (d == null || d > 4)
                 return 0;
