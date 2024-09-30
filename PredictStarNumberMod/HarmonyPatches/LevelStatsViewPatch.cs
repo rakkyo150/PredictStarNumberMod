@@ -236,10 +236,10 @@ namespace PredictStarNumberMod.HarmonyPatches
             }
 
             // 別メソッドにしないと、SongDetailsCacheがないことによる実行時エラーが出て途中で止まるっぽい
-            await SetStarNumberWithoutBetterSongListAndSongDetailsCache(beatmapKey);
+            await SetStarNumberWithoutBetterSongListButWithSongDetailsCache(beatmapKey);
         }
 
-        private async Task SetStarNumberWithoutBetterSongListAndSongDetailsCache(BeatmapKey beatmapKey)
+        private async Task SetStarNumberWithoutBetterSongListButWithSongDetailsCache(BeatmapKey beatmapKey)
         {
             try
             {
