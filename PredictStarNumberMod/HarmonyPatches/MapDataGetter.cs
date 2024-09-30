@@ -44,7 +44,9 @@ namespace PredictStarNumberMod.HarmonyPatches
                 _mapDataContainer.Characteristic = ____selectedDifficultyBeatmap.parentDifficultyBeatmapSet.beatmapCharacteristic;
             }
 
+#if DEBUG
             Plugin.Log?.Info($"MapDataGetter.Postfix: mapHash={mapHash}, BeatmapDifficulty={_mapDataContainer.BeatmapDifficulty}, Characteristic={_mapDataContainer.Characteristic}");
+#endif
 
             // From BetterSongList.Util.BeatmapsUtil
             string GetHashOfPreview(IPreviewBeatmapLevel preview)

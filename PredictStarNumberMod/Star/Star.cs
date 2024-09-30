@@ -94,8 +94,10 @@ namespace PredictStarNumberMod.Star
             sw.Start();
 #endif
             try 
-            { 
+            {
+#if DEBUG
                 Plugin.Log.Info($"previoudMapHash : {previoudMapHash}, _mapDataContainer.MapHash : {_mapDataContainer.MapHash}, preciousBeatmapDifficulty : {preciousBeatmapDifficulty}, _mapDataContainer.BeatmapDifficulty : {_mapDataContainer.BeatmapDifficulty}, previousCharacteristic : {previousCharacteristic}, _mapDataContainer.Characteristic : {_mapDataContainer.Characteristic}");
+#endif
                 if (previoudMapHash == _mapDataContainer.MapHash && preciousBeatmapDifficulty == _mapDataContainer.BeatmapDifficulty
                     && previousCharacteristic == _mapDataContainer.Characteristic)
                 {

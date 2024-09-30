@@ -110,7 +110,9 @@ namespace PredictStarNumberMod.PP
                 }
 
                 double predictedStarNumber = await _star.GetPredictedStarNumberAfterWaitingQueue();
+#if DEBUG
                 Plugin.Log.Info($"predictedStarNumber at CalculatePP : {predictedStarNumber}");
+#endif
 
                 if (predictedStarNumber == _star.SkipStarNumber
                                    || predictedStarNumber == _star.ErrorStarNumber)

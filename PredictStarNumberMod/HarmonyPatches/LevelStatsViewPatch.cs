@@ -228,7 +228,11 @@ namespace PredictStarNumberMod.HarmonyPatches
                     return;
                 }
 
-                if (songDetails == null) songDetails = await SongDetailsCache.SongDetails.Init();
+                if (songDetails == null)
+                {
+                    Plugin.Log.Info("SongDetailsCache not found");
+                    songDetails = await SongDetailsCache.SongDetails.Init();
+                }
                 bool songExists = songDetails.songs.FindByHash(GetHashOfPreview(difficultyBeatmap.level), out SongDetailsCache.Structs.Song song);
                 bool difficyltyExits = song.GetDifficulty(out SongDetailsCache.Structs.SongDifficulty difficulty, (SongDetailsCache.Structs.MapDifficulty)difficultyBeatmap.difficulty,
                     (SongDetailsCache.Structs.MapCharacteristic)this.GetCharacteristicFromDifficulty(difficultyBeatmap));
