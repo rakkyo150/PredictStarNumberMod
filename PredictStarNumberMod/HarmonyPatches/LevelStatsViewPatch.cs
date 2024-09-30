@@ -65,7 +65,7 @@ namespace PredictStarNumberMod.HarmonyPatches
         private async Task wrapper(TextMeshProUGUI field, IDifficultyBeatmap difficultyBeatmap, PlayerData playerData)
         {
             if (PluginManager.GetPlugin("BetterSongList") == null)
-                await SetStarNumberWithoutBetterSongList(beatmapKey);
+                await SetStarNumberWithoutBetterSongList(difficultyBeatmap);
 
             double percentage = await GetPercentage(difficultyBeatmap, playerData);
             _pP.SetAccuracy(percentage);
@@ -226,10 +226,10 @@ namespace PredictStarNumberMod.HarmonyPatches
             }
 
             // 別メソッドにしないと、SongDetailsCacheがないことによる実行時エラーが出て途中で止まるっぽい
-            await SetStarNumberWithoutBetterSongListAndSongDetailsCache(beatmapKey);
+            await SetStarNumberWithoutBetterSongListAndSongDetailsCache(difficultyBeatmap);
         }
 
-        private async Task SetStarNumberWithoutBetterSongListAndSongDetailsCache(BeatmapKey beatmapKey)
+        private async Task SetStarNumberWithoutBetterSongListAndSongDetailsCache(IDifficultyBeatmap difficultyBeatmap)
         {
             try
             {
