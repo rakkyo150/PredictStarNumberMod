@@ -14,8 +14,9 @@ namespace PredictStarNumberMod.HarmonyPatches
 {
     public class LevelStatsViewPatch : IAffinity
     {
-        private Vector2 originalAnchoredPosition = new Vector2((float)12.00, (float)-3.80);
-        private Vector2 modifiedAnchordPostion = new Vector2((float)12.00, (float)-5.30);
+        private Vector2 originalAnchoredPosition = Vector2.zero;
+        private Vector2 modifiedAnchordPostion = Vector2.zero;
+        private bool originalAnchoredPositionInitialized = false;
         private double neverClearPercentage = -1;
 
         private RectTransform rectTransform;
@@ -46,8 +47,22 @@ namespace PredictStarNumberMod.HarmonyPatches
         protected void Prefix(ref TextMeshProUGUI ____highScoreText)
         {
             rectTransform = ____highScoreText.GetComponent<RectTransform>();
-            if (rectTransform.anchoredPosition == modifiedAnchordPostion)
-                rectTransform.anchoredPosition = originalAnchoredPosition;
+
+            if (!originalAnchoredPositionInitialized)
+            {
+                originalAnchoredPosition = rectTransform.anchoredPosition;
+                modifiedAnchordPostion = new Vector2(originalAnchoredPosition.x, originalAnchoredPosition.y - 1.5f);
+                originalAnchoredPositionInitialized = true;
+            }
+            
+            lock (lockField)
+            {
+#if DEBUG
+                Plugin.Log.Info($"anchoredPostion: {rectTransform.anchoredPosition}");
+#endif
+                if (rectTransform.anchoredPosition == modifiedAnchordPostion)
+                    rectTransform.anchoredPosition = originalAnchoredPosition;
+            }
         }
 
         /// <summary>
@@ -197,6 +212,9 @@ namespace PredictStarNumberMod.HarmonyPatches
         {
             lock (lockField)
             {
+#if DEBUG
+                Plugin.Log.Info($"anchoredPostion: {rectTransform.anchoredPosition}");
+#endif
                 if (rectTransform.anchoredPosition == originalAnchoredPosition)
                     rectTransform.anchoredPosition = modifiedAnchordPostion;
             }    
