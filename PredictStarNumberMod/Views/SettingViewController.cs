@@ -70,12 +70,12 @@ namespace PredictStarNumberMod
 
         public void Dispose()
         {
-            if (PluginConfig.Instance != null) BSMLSettings.instance.RemoveSettingsMenu(this);
+            if (PluginConfig.Instance != null) BSMLSettings.Instance.RemoveSettingsMenu(this);
         }
 
         public void Initialize()
         {
-            BSMLSettings.instance.AddSettingsMenu("<size=85%>PredictStarNumberMod</size>", ResourceName, this);
+            BSMLSettings.Instance.AddSettingsMenu("<size=85%>PredictStarNumberMod</size>", ResourceName, this);
         }
 
         [UIAction("#post-parse")]
