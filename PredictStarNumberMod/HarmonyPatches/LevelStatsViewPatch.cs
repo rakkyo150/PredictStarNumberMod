@@ -42,7 +42,7 @@ namespace PredictStarNumberMod.HarmonyPatches
             _beatmapLevelsEntitlementModel = beatmapLevelsEntitlementModel;
         }
 
-        [AffinityPatch(typeof(LevelStatsView), nameof(LevelStatsView.ShowStats))]
+        [AffinityPatch(typeof(LevelStatsView), nameof(LevelStatsView.ShowStats), AffinityMethodType.Normal, new AffinityArgumentType[] { AffinityArgumentType.Ref, AffinityArgumentType.Normal}, new Type[] {typeof(BeatmapKey), typeof(PlayerData)})]
         [AffinityPrefix]
         protected void Prefix(ref TextMeshProUGUI ____highScoreText)
         {
@@ -73,7 +73,7 @@ namespace PredictStarNumberMod.HarmonyPatches
         /// <param name="____privateFieldInClassToPatch">Reference to the private field in ClassToPatch named '_privateFieldInClassToPatch', 
         ///     added three _ to the beginning to reference it in the patch. Adding ref means we can change it.</param>
         [AffinityAfter(new string[] { "com.Idlebob.BeatSaber.ScorePercentage" })]
-        [AffinityPatch(typeof(LevelStatsView), nameof(LevelStatsView.ShowStats))]
+        [AffinityPatch(typeof(LevelStatsView), nameof(LevelStatsView.ShowStats), AffinityMethodType.Normal, new AffinityArgumentType[] { AffinityArgumentType.Ref, AffinityArgumentType.Normal }, new Type[] { typeof(BeatmapKey), typeof(PlayerData) })]
         [AffinityPrefix]
         // Entrypoint
         protected void Postfix(ref TextMeshProUGUI ____highScoreText, BeatmapKey beatmapKey, PlayerData playerData)
