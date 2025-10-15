@@ -1,8 +1,8 @@
 # PredictStarNumberMod
 
 > [!WARNING]
-> 学習モデルの提供元である[PredictStarNumberHelper](https://github.com/rakkyo150/PredictStarNumberHelper)の更新に伴い、アプデが必要になりました。
-> このアプデに対応していないバージョン(v1.29.1とv1.38.0以上以外)については、[このポスト](https://x.com/rakkyo150/status/1978247318261346419)を参考にonnxruntimeを更新するかアプデに対応しているゲームバージョンを使用するようにしてください。
+> 学習モデルの提供元である[PredictStarNumberHelper](https://github.com/rakkyo150/PredictStarNumberHelper)の更新(2025.10.15付)に伴い、アプデが必要になりました。  
+> このアプデに対応していないバージョン(v1.29.1とv1.38.0以上以外)については、[このポスト](https://x.com/rakkyo150/status/1978247318261346419)を参考にonnxruntimeを更新してください。
 
 ## これは何
 [BetterSongListに星予測機能をいれたMod](https://github.com/rakkyo150/BetterSongList-PredictStarNumber)の後継Modです。<br>
