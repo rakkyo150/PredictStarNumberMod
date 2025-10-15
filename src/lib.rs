@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 use std::io::BufReader;
 use tract_onnx::onnx;
 use tract_onnx::prelude::{

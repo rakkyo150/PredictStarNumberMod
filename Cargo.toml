@@ -1,5 +1,5 @@
 [package]
-name = "predict_star_number_mod"
+name = "PredictStarNumberModLib"
 version = "0.1.0"
 edition = "2024"
 
