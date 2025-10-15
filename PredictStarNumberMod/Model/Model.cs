@@ -1,5 +1,4 @@
-﻿using Microsoft.ML.OnnxRuntime;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -9,7 +8,6 @@ namespace PredictStarNumberMod.Model
     public class Model
     {
         internal byte[] ModelByte { get; set; } = new byte[] { 0 };
-        internal InferenceSession Session { get; set; } = null;
 
         internal string ModelAssetEndpoint { get; } = "https://api.github.com/repos/rakkyo150/PredictStarNumberHelper/releases/latest";
 
