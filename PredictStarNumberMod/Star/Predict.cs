@@ -12,7 +12,7 @@ namespace CsBindgen
 {
     internal static unsafe partial class NativeMethods
     {
-        const string __DllName = "Libs/predict_star_number_mod.dll";
+        const string __DllName = "Libs/PredictStarNumberModLib.dll";
 
 
 
