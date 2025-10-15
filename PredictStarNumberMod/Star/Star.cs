@@ -1,10 +1,7 @@
-﻿using Microsoft.ML.OnnxRuntime;
-using Microsoft.ML.OnnxRuntime.Tensors;
+﻿using CsBindgen;
 using PredictStarNumberMod.Map;
 using PredictStarNumberMod.Utilities;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -119,11 +116,6 @@ namespace PredictStarNumberMod.Star
 
                 if (_mapDataContainer.Data == _mapDataContainer.NoMapData) return this.SkipStarNumber;
 
-                if (_model.Session == null)
-                {
-                    _model.Session = new InferenceSession(_model.ModelByte);
-                }
-                string inputNoneName = _model.Session?.InputMetadata.First().Key;
                 double[] data = new double[15]
                 {
                     _mapDataContainer.Data.Bpm,
@@ -143,19 +135,15 @@ namespace PredictStarNumberMod.Star
                     _mapDataContainer.Data.Resets
                 };
 
-#if DEBUG
-                var innodedims = _model.Session?.InputMetadata.First().Value.Dimensions;
-                // Plugin.Log.Info(string.Join(", ", innodedims));
-                // Plugin.Log.Info(string.Join(". ", data));
-#endif
-                var inputTensor = new DenseTensor<double>(data, new int[] { 1, data.Length }, false);  // let's say data is fed into the Tensor objects
-                List<NamedOnnxValue> inputs = new List<NamedOnnxValue>()
+                unsafe
                 {
-                    NamedOnnxValue.CreateFromTensor<double>(inputNoneName, inputTensor)
-                };
-                using (var results = _model.Session?.Run(inputs))
-                {
-                    return results.First().AsTensor<double>()[0];
+                    fixed (double* record = data) // 配列の固定ピン留め                                                                                  
+                    {
+                        fixed (byte* model = _model.ModelByte)
+                        {
+                            return NativeMethods.get_predicted_values(record, (UIntPtr)data.Length, model, (UIntPtr)_model.ModelByte.Length);
+                        }
+                    }
                 }
             }
             catch (Exception ex)

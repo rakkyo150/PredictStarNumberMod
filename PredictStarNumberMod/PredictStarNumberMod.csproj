@@ -81,11 +81,6 @@
       <Private>False</Private>
       <SpecificVersion>False</SpecificVersion>
     </Reference>
-    <Reference Include="Microsoft.ML.OnnxRuntime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=f27f157f0a5b7bb6, processorArchitecture=MSIL">
-      <HintPath>$(BeatSaberDir)\Libs\Microsoft.ML.OnnxRuntime.dll</HintPath>
-      <Private>True</Private>
-      <SpecificVersion>False</SpecificVersion>
-    </Reference>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(BeatSaberDir)\Libs\Newtonsoft.Json.dll</HintPath>
@@ -174,9 +169,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="LICENSE_FOR_RELEASE">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <Compile Include="HarmonyPatches\LevelStatsViewPatch.cs" />
     <Compile Include="Installers\PlayerInstaller.cs" />
     <Compile Include="Map\MapDataContainer.cs" />
@@ -195,6 +187,7 @@
     <Compile Include="PP\PP.cs" />
     <Compile Include="PP\CurveDownloader.cs" />
     <Compile Include="Star\Star.cs" />
+    <Compile Include="Star\Predict.cs" />
     <Compile Include="Utilities\OrderedAsyncTaskQueue.cs" />
     <Compile Include="Views\SettingViewController.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -237,4 +230,8 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
 </Project>
