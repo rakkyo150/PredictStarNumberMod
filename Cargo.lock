@@ -3,6 +3,14 @@
 version = 4
 
 [[package]]
+name = "PredictStarNumberModLib"
+version = "0.1.0"
+dependencies = [
+ "csbindgen",
+ "tract-onnx",
+]
+
+[[package]]
 name = "adler2"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -656,14 +664,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "85eae3c4ed2f50dcfe72643da4befc30deadb458a9b590d720cde2f2b1e97da9"
 dependencies = [
  "zerocopy",
-]
-
-[[package]]
-name = "predict_star_number_mod"
-version = "0.1.0"
-dependencies = [
- "csbindgen",
- "tract-onnx",
 ]
 
 [[package]]
