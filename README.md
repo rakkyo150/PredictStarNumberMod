@@ -1,5 +1,9 @@
 # PredictStarNumberMod
 
+> [!WARNING]
+> 学習モデルの提供元である[PredictStarNumberHelper](https://github.com/rakkyo150/PredictStarNumberHelper)の更新に伴い、アプデが必要になりました。
+> このアプデに対応していないバージョン(v1.29.1とv1.38.0以上以外)については、[このポスト](https://x.com/rakkyo150/status/1978247318261346419)を参考にonnxruntimeを更新するかアプデに対応しているゲームバージョンを使用するようにしてください。
+
 ## これは何
 [BetterSongListに星予測機能をいれたMod](https://github.com/rakkyo150/BetterSongList-PredictStarNumber)の後継Modです。<br>
 今後はこちらを更新していきます。<br>
@@ -33,6 +37,10 @@ PredictStarNumberModの設定は、カスタムカウンターとオーバーレ
 オーバーレイは[HttpSiraStatus](https://github.com/denpadokei/HttpSiraStatus)に依存しています。<br>
 また、[BetterSongList](https://github.com/kinsi55/BeatSaber_BetterSongList)の使用を推奨します。<br>
 いずれのModも(特にBetterSongListは)、インストール可能ならば、[ModAssistant](https://github.com/bsmg/ModAssistant)もしくは[BSManager](https://github.com/Zagrios/bs-manager)経由のインストールを推奨します。
+
+## 開発者の方へ
+onnxruntimeを利用する方法からRustのtract-onnxを利用する方法に変更しました。  
+Rustに関係する部分を編集した場合、`cargo build --release`を実行することでビルドが可能です。
 
 ## 関連リンク
 Training Data : https://github.com/rakkyo150/RankedMapData <br>
