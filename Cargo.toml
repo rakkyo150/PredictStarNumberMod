@@ -1,0 +1,13 @@
+[package]
+name = "predict_star_number_mod"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+
+[build-dependencies]
+csbindgen = "1.9.6"
+
+[dependencies]
+tract-onnx = "0.22.0"
