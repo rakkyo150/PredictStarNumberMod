@@ -40,7 +40,8 @@ PredictStarNumberModの設定は、カスタムカウンターとオーバーレ
 
 ## 開発者の方へ
 onnxruntimeを利用する方法からRustのtract-onnxを利用する方法に変更しました。  
-Rustに関係する部分を編集した場合、`cargo build --release`を実行することでビルドが可能です。
+Rustに関係する部分を編集した場合、`cargo build --release`を実行することでビルドが可能です。  
+なお、Rustの依存クレートのライセンス表記については、[cargo-about](https://github.com/EmbarkStudios/cargo-about)を利用して、`dependence_license.html`を生成しています。
 
 ## 関連リンク
 Training Data : https://github.com/rakkyo150/RankedMapData <br>
