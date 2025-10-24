@@ -9,23 +9,14 @@ namespace PredictStarNumberMod.Model
     {
         internal byte[] ModelByte { get; set; } = new byte[] { 0 };
 
-        internal string ModelAssetEndpoint { get; } = "https://api.github.com/repos/rakkyo150/PredictStarNumberHelper/releases/latest";
+        internal string ModelEndpoint { get; } = "https://github.com/rakkyo150/PredictStarNumberHelper/releases/latest/download/model.onnx";
 
         internal async Task<byte[]> GetModel()
         {
             HttpClient client = new HttpClient();
-            var request = new HttpRequestMessage(HttpMethod.Get, this.ModelAssetEndpoint);
-            request.Headers.Add("User-Agent", "C# App");
-            var response = await client.SendAsync(request);
-            string assetString = await response.Content.ReadAsStringAsync();
-            LatestRelease latestRelease = JsonConvert.DeserializeObject<LatestRelease>(assetString);
-            string modelDownloadUrl = latestRelease.assets[2].browser_download_url;
-#if DEBUG
-            Plugin.Log.Info(modelDownloadUrl);
-#endif
-            request = new HttpRequestMessage(HttpMethod.Get, modelDownloadUrl);
-            request.Headers.Add("User-Agent", "C# App");
-            var modelResponse = await client.SendAsync(request);
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, this.ModelEndpoint);
+            request.Headers.Add("User-Agent", "PredictStarNumberMod");
+            HttpResponseMessage modelResponse = await client.SendAsync(request);
             client.Dispose();
             request.Dispose();
             return await modelResponse.Content.ReadAsByteArrayAsync();
